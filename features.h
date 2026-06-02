@@ -17,5 +17,7 @@ float ssd(std::vector<float> &vec1, std::vector<float> &vec2);
 std::vector<float> extractHist(cv::Mat &image);
 float computeHistIntersection(std::vector<float> &hist1, std::vector<float> &hist2);
 std::vector<float> extractHist3x3(cv::Mat &image);
+std::vector<float> extractMultipleHistQuadrants(cv::Mat &image);
+std::vector<float> extractMultipleHistFullMiddle(cv::Mat &image);
 
 #endif // FILTER_H
