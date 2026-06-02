@@ -8,7 +8,7 @@
 #include <set>
 namespace fs = std::filesystem;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]){
     if(argc != 4){
         return 1;
     }
