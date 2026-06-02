@@ -13,20 +13,7 @@ using namespace cv;
 
 */
 std::vector<float> textureHistogram(cv::Mat &src) {
-    cv::Mat texturedHist;
-    int channels[] = {0};
-
-    float hrange[] = {0, 180};
-    float srange[] = {0, 256};
-
-    const float* range[] = {hrange, srange};
     
-    int hbins = 30;
-    int sbins = 32;
-
-    int hsize[] = {hbins, sbins};
-
-    calcHist(src, 1, channels, cv::Mat(), texturedHist, hsize, range);
 }
 
 /*
