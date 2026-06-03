@@ -118,3 +118,42 @@ float computeHistIntersection(std::vector<float> &hist1, std::vector<float> &his
     }
     return 1 - res;
 }
+
+std::vector<float> extractMultipleHistQuadrants(cv::Mat &image){
+    cv::Mat topHalf = image(cv::Rect(0, 0, image.cols, image.rows/2));
+    cv::Mat bottomHalf = image(cv::Rect(0, image.rows / 2, image.cols, image.rows / 2));
+    cv::Mat rightHalf = image(cv::Rect(image.cols/2, 0, image.cols/2, image.rows));
+    cv::Mat leftHalf = image(cv::Rect(0, 0, image.cols/2, image.rows));
+
+    std::vector<float> topVector = extractHist(topHalf);
+    std::vector<float> bottomVector = extractHist(bottomHalf);
+    std::vector<float> leftVector = extractHist(leftHalf);
+    std::vector<float> rightVector = extractHist(rightHalf);
+
+    std::vector<float> vec;
+    vec.insert(vec.end(), topVector.begin(), topVector.end());               
+    vec.insert(vec.end(), bottomVector.begin(), bottomVector.end());         
+    vec.insert(vec.end(), leftVector.begin(), leftVector.end());             
+    vec.insert(vec.end(), rightVector.begin(), rightVector.end());
+    
+    return vec;      
+}
+
+std::vector<float> extractMultipleHistFullMiddle(cv::Mat &image){
+    std::vector<float> fullImgVec = extractHist(image);
+    int cropWidth = image.cols / 2;
+    int cropHeight = image.rows / 2;
+    // 2. Calculate the top-left starting coordinates (X, Y)
+    int startX = (image.cols - cropWidth) / 2;
+    int startY = (image.rows - cropHeight) / 2;
+    // 3. Extract the middle region
+    cv::Mat middleRegion = image(cv::Rect(startX, startY, cropWidth, cropHeight));
+    std::vector<float> middleImgVec = extractHist(middleRegion);
+
+    std::vector<float> vec;
+    vec.insert(vec.end(), fullImgVec.begin(), fullImgVec.end());               
+    vec.insert(vec.end(), middleImgVec.begin(), middleImgVec.end());         
+
+    return vec;      
+}
+

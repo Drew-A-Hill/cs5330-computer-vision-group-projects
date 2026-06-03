@@ -61,6 +61,35 @@ int main(int argc, char* argv[]){
             first = false;
         }
     }
+    else if(featureType == "mh"){
+        for (const auto& entry : fs::directory_iterator(targetDir)) {
+            std::string ext = entry.path().extension().string();
+
+            if (!imgExts.count(ext)) {
+                continue;
+            }
+            cv::Mat img = cv::imread(entry.path().string());
+            std::vector<float> vec = extractMultipleHistQuadrants(img);
+
+            append_image_data_csv((char*)csvFilename.c_str(), (char*)entry.path().filename().string().c_str(),vec, first ? 1:0);
+            first = false;
+        }
+    }
+    else if(featureType == "mh2"){
+        for (const auto& entry : fs::directory_iterator(targetDir)) {
+            std::string ext = entry.path().extension().string();
+
+            if (!imgExts.count(ext)) {
+                continue;
+            }
+            cv::Mat img = cv::imread(entry.path().string());
+            std::vector<float> vec = extractMultipleHistFullMiddle(img);
+
+            append_image_data_csv((char*)csvFilename.c_str(), (char*)entry.path().filename().string().c_str(),vec, first ? 1:0);
+            first = false;
+        }
+    }
+
     
     return 0;
 }
