@@ -7,6 +7,8 @@
 #include "csv_util.h"
 #include <utility>
 #include <algorithm>
+#include "features_helper.h"
+
 namespace fs = std::filesystem;
 
 int main(int argc, char* argv[]){
@@ -74,6 +76,28 @@ int main(int argc, char* argv[]){
         for(int i = 0; i < N; i ++){
             printf("%s\n", pairs[i].second.c_str());
         }
+
+        // Used for task 4
+        // FIXME: Fix this comment
+    } else if (method == "tx") {
+        
+        cv::Mat texturedTargetImg;
+
+        // Computes a normalized sobel gradient magnitude image for the target image.
+        textureSobelMagnitude(targetImg, texturedTargetImg);
+
+        // Computes the feature vector for a textured histogram.
+        std::vector<float> texturedFeatureVector = computeTexturedHistogram(texturedTargetImg);
+
+        // Computes the feature vector for the full color histogram.
+        std::vector<float> colorFeatureVector = extractBaselineFeature(targetImg);
+
+        std::vector<float> distanceTextured = computeHistIntersection()
+
+
+
+
+
     }
     return 0;
 }

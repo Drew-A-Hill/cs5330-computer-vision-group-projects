@@ -118,3 +118,36 @@ float computeHistIntersection(std::vector<float> &hist1, std::vector<float> &his
     }
     return 1 - res;
 }
+
+/*
+  Computes a histogram for textured images.
+
+  cv::Mat &src Source image to be converted.
+  returns std::vector the calculated histogram vector
+*/
+std::vector<float> computeTexturedHistogram(cv::Mat &src) {
+    // Declares histogram matrix
+    cv::Mat hist;
+
+    // Sets parameters used for converting textured image into histogram
+    int channels[] = {0};
+    int bins = 32;
+    int size[] = {bins};
+    float range[] = {0, 256};
+    const float* ranges[] = {range};
+
+    // Converts textured image into histogram.
+    cv::calcHist(&src, 1, channels, cv::Mat(), hist, 1, size, ranges);
+
+    // Declares vector to hold feature values
+    std::vector<float> textured;
+
+    // Adds feature values from histogram to vector
+    for (int i = 0; i < hist.rows; i++) {
+        float val = hist.at<float>(i, 0);
+
+        textured.push_back(val);
+    }
+
+    return textured;
+}
