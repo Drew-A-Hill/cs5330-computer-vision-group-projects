@@ -6,7 +6,7 @@ csv_helper: csv_helper.cpp csv_util.cpp features.cpp
 	$(CXX) -o csv_helper csv_helper.cpp csv_util.cpp features.cpp $(CXXFLAGS) $(LDFLAGS)
 
 matcher: matcher.cpp csv_util.cpp features.cpp
-	$(CXX) -o matcher matcher.cpp csv_util.cpp features.cpp  $(CXXFLAGS) $(LDFLAGS)
+	$(CXX) -o matcher matcher.cpp csv_util.cpp features.cpp features_helper.cpp matcher_helper.cpp $(CXXFLAGS) $(LDFLAGS)
 
 clean:
 	rm -f csv_helper matcher

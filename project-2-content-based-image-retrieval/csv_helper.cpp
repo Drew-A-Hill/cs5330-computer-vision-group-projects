@@ -8,6 +8,13 @@
 #include <set>
 namespace fs = std::filesystem;
 
+
+//
+// TODO: We should remove repeat code it appears that all of these condiditonals are doing the exact same thing.
+// Is there a reason for that?
+// 
+
+
 int main(int argc, char* argv[]){
     if(argc != 4){
         return 1;
@@ -56,6 +63,19 @@ int main(int argc, char* argv[]){
             }
             cv::Mat img = cv::imread(entry.path().string());
             std::vector<float> vec = extractHist3x3(img);
+
+            append_image_data_csv((char*)csvFilename.c_str(), (char*)entry.path().filename().string().c_str(),vec, first ? 1:0);
+            first = false;
+        }
+    } else if (featureType == "tx") {
+        for (const auto& entry : fs::directory_iterator(targetDir)) {
+            std::string ext = entry.path().extension().string();
+
+            if (!imgExts.count(ext)) {
+                continue;
+            }
+            cv::Mat img = cv::imread(entry.path().string());
+            std::vector<float> vec = ;
 
             append_image_data_csv((char*)csvFilename.c_str(), (char*)entry.path().filename().string().c_str(),vec, first ? 1:0);
             first = false;
