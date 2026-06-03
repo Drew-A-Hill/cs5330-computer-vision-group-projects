@@ -7,9 +7,6 @@
 #include "csv_util.h"
 #include <utility>
 #include <algorithm>
-#include "features_helper.h"
-#include "matcher_helper.h"
-
 namespace fs = std::filesystem;
 
 /*
@@ -90,42 +87,37 @@ int main(int argc, char* argv[]){
             printf("%s\n", pairs[i].second.c_str());
         }
 
-        // Used for task 4
-        // FIXME: Fix this comment
-    } else if (method == "tx") {
-        // Vector of pairs containing difference between an img and the target img as well as filename.
+    }
+    //Task 4: Texture and Color
+    else if (method == "tx") {
+        //Compute target image texture features
+        cv::Mat texturedImg;
+        textureSobelMagnitude(targetImg, texturedImg);
+        std::vector<float> targetTextureVec = computeTexturedHistogram(texturedImg);
+
+        //Compute target image color features
+        std::vector<float> targetColorVec = extractHist(targetImg);
+
+        int textureSize = targetTextureVec.size();
+
         std::vector<std::pair<float, std::string>> pairs;
 
-        // Computes the color and texture feature vectors for the target image.
-        std::pair<std::vector<float>, std::vector<float>> targetFeatureVectors = computeColorTextureHists(targetImg);
-        
-        // Declairs a vector of feature vectors for the current image.
-        std::pair<std::vector<float>, std::vector<float>> currFeatureVectors;
+        for(int i = 0; i < filenames.size(); i++){
+            //Split the CSV vector into texture and color portions
+            std::vector<float> curTexture(data[i].begin(), data[i].begin() + textureSize);
+            std::vector<float> curColor(data[i].begin() + textureSize, data[i].end());
 
-        for (int i = 0; i < filenames.size(); i++) {
-            std::string filepath = std::string("olympus/") + filenames[i];
-            cv:Mat currImg = imread(filepath);
+            float textureDistance = computeHistIntersection(targetTextureVec, curTexture);
+            float colorDistance = computeHistIntersection(targetColorVec, curColor);
 
-            currFeatureVectors = computeColorTextureHists(currImg);
+            //Weight both equally at 0.5
+            float combinedDistance = (textureDistance * 0.5) + (colorDistance * 0.5);
 
-            // Finds the difference for color and texture features.
-            float colorDistance = computeHistIntersection(targetFeatureVectors.first, currFeatureVectors.first);
-            float textureDistance = computeHistIntersection(targetFeatureVectors.second, currFeatureVectors.second);
-
-            // Finds the combinded weighted difference for each of the features.
-            float combinedDistance = (colorDistance * .5) + (textureDistance * .5);
-
-            // Creates a pair and adds the combined distance and the file name of the image compared.
-            std::pair<float, std::string> currPair(combinedDistance, filenames[i]);
-
-            pairs.push_back(currPair);
+            std::pair<float, std::string> curPair(combinedDistance, filenames[i]);
+            pairs.push_back(curPair);
         }
-
-        // Sorts the pairs in order of most to least simmilar.
-        std:sort(pairs.begin(), pairs.end());
-
-        // Prints the first N most similar filenames
-        for(int i = 0; i < N; i ++){
+        std::sort(pairs.begin(), pairs.end());
+        for(int i = 0; i < N; i++){
             printf("%s\n", pairs[i].second.c_str());
         }
     }
