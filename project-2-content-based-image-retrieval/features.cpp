@@ -230,3 +230,21 @@ std::vector<float> computeTexturedHistogram(cv::Mat &src) {
 
     return textured;
 }
+
+/*
+  Task 5: 
+*/
+
+
+/* 
+  Task 6:
+*/
+
+
+/* 
+  Task 7:
+*/
+
+/* 
+  Extension 2:
+*/
