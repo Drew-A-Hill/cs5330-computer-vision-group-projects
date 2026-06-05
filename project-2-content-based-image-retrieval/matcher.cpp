@@ -7,7 +7,54 @@
 #include "csv_util.h"
 #include <utility>
 #include <algorithm>
+#include <unordered_map>
+
 namespace fs = std::filesystem;
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+  A helper function for task 5 that normazlizes a given vector.
+
+  std::vector<float> srcVector the vector that needs to be normalized.
+  std::vector<float> dstVector vector that holds the normalized vector.
+  returns int value indication of success or failure of running normalization.
+*/
+static int normalizeV(std::vector<float> srcVector, std::vector<float> &dstVector) {
+    if (srcVector.empty()) {
+        printf("Source vector contains no values\n");
+        return -1;
+    }
+
+    // Normalizes the vectors
+    // Calculuate the sum of squares
+    float sum = 0;
+
+    for (int i = 0; i < srcVector.size(); i++) {
+        sum += srcVector[i] * srcVector[i];
+    }
+
+    // Calculate length of vector 
+    float length = sqrt(sum);
+
+    for (int i = 0; i < srcVector.size(); i++) {
+        srcVector[i] = srcVector[i] / length;
+    }
+
+    dstVector = srcVector;
+
+    return 0;
+}
 
 /*
   TEMP NOTE: run ./matcher olympus/{img name.jpg} features.csv {N top imgs to display} action (ie tx for texture)
@@ -43,7 +90,9 @@ int main(int argc, char* argv[]){
             std::pair<float, std::string> curPair(distance, filenames[i]);
             pairs.push_back(curPair);
         }
+
         std::sort(pairs.begin(), pairs.end());
+
         for(int i = 0; i < N; i ++){
             printf("%s\n", pairs[i].second.c_str());
         }
@@ -127,6 +176,7 @@ int main(int argc, char* argv[]){
             printf("%s\n", pairs[i].second.c_str());
         }
     }
+     
     //Task 3: Multiple Histogram Matching - pass 'mh2' as the method
     else if (method == "mh2"){
         //Similar to the previous method except this measure breaks the image into the full image and middle of the image
@@ -170,7 +220,8 @@ int main(int argc, char* argv[]){
 
         std::vector<std::pair<float, std::string>> pairs;
 
-        for(int i = 0; i < filenames.size(); i++){
+        for(int i = 0; i < filenames.size(); i++) {
+
             //Split the CSV vector into texture and color portions
             std::vector<float> curTexture(data[i].begin(), data[i].begin() + textureSize);
             std::vector<float> curColor(data[i].begin() + textureSize, data[i].end());
@@ -184,10 +235,90 @@ int main(int argc, char* argv[]){
             std::pair<float, std::string> curPair(combinedDistance, filenames[i]);
             pairs.push_back(curPair);
         }
+
+        // Sorts vector of distances
         std::sort(pairs.begin(), pairs.end());
+
         for(int i = 0; i < N; i++){
             printf("%s\n", pairs[i].second.c_str());
         }
+
+        //Task 5: Deep Network embedding
+    } else if (method == "rc") {
+
+        std::vector<float> targetV;
+
+        // Finds the target image vector in the csv file
+        for (int i = 0; i < filenames.size(); i++) {
+            if (strcmp(filenames[i], imgArg.c_str()) == 0) {
+                targetV = data[i];
+
+                printf("\nTarget %s Found\n\n", imgArg.c_str());
+                break;
+            } 
+        }
+
+        // Mormalizes the target vector
+        normalizeV(targetV, targetV);
+
+        // Declare a new vector of pairs containing the distance to target and filename.
+        std::vector<std::pair<float, std::string>> distance;
+
+        // Declares a vector to hold the current normalized vector from the loop.
+        std::vector<float> currNormV;
+
+        for (int i = 0; i < filenames.size(); i++) {
+
+            // Checks that img vector being compared is not the target img vector.
+            if (strcmp(filenames[i], imgArg.c_str()) != 0) {
+
+                // Fetches and normalizes vector img being compared to target img
+                std::vector<float> currV = data[i];
+                normalizeV(currV, currNormV);
+
+                // Computes the dot product of the normalized target img vector and img vector being compared
+                float sum = 0;
+                for (int j = 0; j < targetV.size(); j++) {
+                    sum += targetV[j] * currNormV[j];
+                }
+
+                // Adds cosign difference and file name to a pair
+                std::pair<float, std::string> currPair((1 - sum), filenames[i]);
+
+                // Adds the above pair to a vector
+                distance.push_back(currPair);
+            }
+        }
+
+        // Checks that the distance vector is not empty before sort.
+        if (distance.empty()) {
+            printf("Empty\n");
+            return - 1;
+        }
+
+        // Sorts the vector of pairs.
+        std::sort(distance.begin(), distance.end());
+        
+        // Prints the file name and distance of the N most similar imgs to the target.
+        for (int i = 0; i < N; i++) {
+            printf("%f, %s\n", distance[i].first, distance[i].second.c_str());
+
+            std::string filepath0 = "olympus/pic.0893.jpg";
+            std::string filepath1 = "olympus/" + distance[i].second;
+
+            cv::Mat img0 = cv::imread(filepath0);
+            cv::imshow("Target", img0);
+
+            cv::Mat img1 = cv::imread(filepath1);
+            cv::imshow("Compare", img1);
+
+            cv::waitKey(0);
+        }
+
+        // Task 6: Compare DNN Embedding and Classic Features
+    } else if (method == "dvf") {
+
+
     }
     return 0;
 }

@@ -183,9 +183,11 @@ std::vector<float> extractMultipleHistFullMiddle(cv::Mat &image){
     std::vector<float> fullImgVec = extractHist(image);
     int cropWidth = image.cols / 2;
     int cropHeight = image.rows / 2;
+
     //Calculate the top-left starting coordinates (X, Y)
     int startX = (image.cols - cropWidth) / 2;
     int startY = (image.rows - cropHeight) / 2;
+
     //Extract the middle region
     cv::Mat middleRegion = image(cv::Rect(startX, startY, cropWidth, cropHeight));
     std::vector<float> middleImgVec = extractHist(middleRegion);
@@ -256,21 +258,3 @@ std::vector<float> computeTexturedHistogram(cv::Mat &src) {
 
     return textured;
 }
-
-/*
-  Task 5: 
-*/
-
-
-/* 
-  Task 6:
-*/
-
-
-/* 
-  Task 7:
-*/
-
-/* 
-  Extension 2:
-*/
