@@ -8,7 +8,6 @@
 #include <set>
 namespace fs = std::filesystem;
 
-
 //
 // TODO: We should remove repeat code it appears that all of these condiditonals are doing the exact same thing.
 // Is there a reason for that?

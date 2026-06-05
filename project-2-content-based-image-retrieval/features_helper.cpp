@@ -259,7 +259,10 @@ int textureSobelMagnitude(Mat &src, Mat &dst) {
     // Creates and stores magnitude image.
     magnitude(sx, sy, mag);
 
-    normalize(mag, dst, NORM_L2);
+    // Convert to CV_8U single-channel for histogram compatibility
+    Mat mag8u;
+    convertScaleAbs(mag, mag8u);
+    cvtColor(mag8u, dst, COLOR_BGR2GRAY);
 
-    return 1;
+    return 0;
 }

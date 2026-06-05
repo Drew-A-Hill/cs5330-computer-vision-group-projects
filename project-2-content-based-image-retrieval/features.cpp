@@ -199,32 +199,6 @@ std::vector<float> extractMultipleHistFullMiddle(cv::Mat &image){
 
 
 /*
-  Task 4: Creates a Sobel Gradient Magnitude textured image from a source image.
-  Applies Sobel X and Y filters, computes the magnitude, and normalizes the result.
-*/
-int textureSobelMagnitude(cv::Mat &src, cv::Mat &dst) {
-    if (src.empty()) {
-        printf("Frame is empty\n");
-        return -1;
-    }
-
-    cv::Mat gray, sx, sy, mag;
-    cv::cvtColor(src, gray, cv::COLOR_BGR2GRAY);
-
-    // Compute Sobel X and Y using OpenCV
-    cv::Sobel(gray, sx, CV_32F, 1, 0, 3);
-    cv::Sobel(gray, sy, CV_32F, 0, 1, 3);
-
-    // Compute gradient magnitude
-    cv::magnitude(sx, sy, mag);
-
-    // Normalize the magnitude image
-    cv::normalize(mag, dst, 0, 255, cv::NORM_MINMAX, CV_8U);
-
-    return 0;
-}
-
-/*
   Computes a histogram for textured images.
 
   cv::Mat &src Source image to be converted.
