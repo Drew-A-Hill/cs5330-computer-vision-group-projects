@@ -1,8 +1,7 @@
 /*
-  Drew Hill
-  Project 2
-  Pattern Recognition & Computer Vision
-  Summer 2026
+    Abhiram Banda, Drew Hill
+    Summer 2026
+    CS 5330 Computer Vision
 
   matcher.cpp
 

@@ -8,14 +8,10 @@
 #include <set>
 namespace fs = std::filesystem;
 
-
-//
-// TODO: We should remove repeat code it appears that all of these condiditonals are doing the exact same thing.
-// Is there a reason for that?
-// 
-
-
 /*  
+    Abhiram Banda, Drew Hill
+    Summer 2026
+    CS 5330 Computer Vision
     This program holds the logic for writing to a csv file after taking in args. Based on the featureType provided, it will 
     call the correct method from features.cpp on each image and write the vector to the csv
 */

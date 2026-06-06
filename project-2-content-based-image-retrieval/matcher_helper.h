@@ -1,5 +1,7 @@
 /*
-
+  Abhiram Banda, Drew Hill
+  Pattern Recognition & Computer Vision
+  Summer 2026
 */
 #include <opencv2/opencv.hpp>
 #include <vector>

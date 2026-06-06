@@ -1,5 +1,5 @@
 /*
-    Abhiram Banda
+    Abhiram Banda, Drew Hill
     Summer 2026
     CS 5330 Computer Vision
 
