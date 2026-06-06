@@ -1,14 +1,13 @@
-#include <opencv2/opencv.hpp>
-#include <iostream>
-#include "features.h"
-#include <cstdio>
-
 /*
     Abhiram Banda, Drew Hill
     Summer 2026
     CS 5330 Computer Vision
     Program which holds the logic for extracting vectors from an image.
 */
+#include <opencv2/opencv.hpp>
+#include <iostream>
+#include "features.h"
+#include <cstdio>
 
 //Takes an image and returns a vector containing the color channels of the 49 pixels in the middle of the image
 std::vector<float> extractBaselineFeature(cv::Mat &image){

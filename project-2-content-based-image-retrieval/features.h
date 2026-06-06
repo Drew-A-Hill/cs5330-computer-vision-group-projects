@@ -5,13 +5,12 @@
 
     Include file for features.cpp
 */
-
 #ifndef FEATURE_H
 #define FEATURE_H
 
 #include <opencv2/opencv.hpp>
 
-// Function declaration (prototype)
+// Function declarations
 std::vector<float> extractBaselineFeature(cv::Mat &image);
 float ssd(std::vector<float> &vec1, std::vector<float> &vec2);
 std::vector<float> extractHist(cv::Mat &image);
