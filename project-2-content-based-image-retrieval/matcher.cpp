@@ -20,6 +20,7 @@
 #include <utility>
 #include <algorithm>
 #include <unordered_map>
+#include <set>
 
 namespace fs = std::filesystem;
 
@@ -232,6 +233,39 @@ std::vector<std::pair<float, std::string>> texturedMatching(cv::Mat targetImg, s
 }
 
 /*
+  A helper function for task 5 that normazlizes a given vector.
+
+  std::vector<float> srcVector the vector that needs to be normalized.
+  std::vector<float> dstVector vector that holds the normalized vector.
+  returns int value indication of success or failure of running normalization.
+*/
+static int normalizeV(std::vector<float> srcVector, std::vector<float> &dstVector) {
+    if (srcVector.empty()) {
+        printf("Source vector contains no values\n");
+        return -1;
+    }
+
+    // Normalizes the vectors
+    // Calculuate the sum of squares
+    float sum = 0;
+
+    for (int i = 0; i < srcVector.size(); i++) {
+        sum += srcVector[i] * srcVector[i];
+    }
+
+    // Calculate length of vector 
+    float length = sqrt(sum);
+
+    for (int i = 0; i < srcVector.size(); i++) {
+        srcVector[i] = srcVector[i] / length;
+    }
+
+    dstVector = srcVector;
+
+    return 0;
+}
+
+/*
   Task 5: Deep Network embedding
 */
 std::vector<std::pair<float, std::string>> dnnMatching(std::string imgArg, std::vector<char *> filenames, std::vector<std::vector<float>> data) {
@@ -285,6 +319,73 @@ std::vector<std::pair<float, std::string>> dnnMatching(std::string imgArg, std::
 }
 
 /*
+  Task 7: Custom Flower Matching
+  Combines center-focused color histogram, texture histogram, and DNN embeddings.
+  Flowers have distinctive bright colors (especially in the center of the image),
+  petal texture patterns, and green foliage backgrounds.
+*/
+std::vector<std::pair<float, std::string>> customMatching(
+    cv::Mat targetImg, std::string imgName,
+    std::vector<char *> dnnFilenames, std::vector<std::vector<float>> dnnData) {
+
+    // Compute target center-focused color histogram (full + middle)
+    std::vector<float> targetColorVec = extractMultipleHistFullMiddle(targetImg);
+    int chunkSize = targetColorVec.size() / 2;
+    std::vector<float> targetFull(targetColorVec.begin(), targetColorVec.begin() + chunkSize);
+    std::vector<float> targetMiddle(targetColorVec.begin() + chunkSize, targetColorVec.end());
+
+    // Find and normalize target DNN embedding
+    std::vector<float> targetDnnNorm;
+    for (int i = 0; i < dnnFilenames.size(); i++) {
+        if (strcmp(dnnFilenames[i], imgName.c_str()) == 0) {
+            normalizeV(dnnData[i], targetDnnNorm);
+            break;
+        }
+    }
+
+    // Build a map from filename -> index for DNN data
+    std::unordered_map<std::string, int> dnnMap;
+    for (int i = 0; i < dnnFilenames.size(); i++) {
+        dnnMap[dnnFilenames[i]] = i;
+    }
+
+    std::vector<std::pair<float, std::string>> pairs;
+
+    for (int i = 0; i < dnnFilenames.size(); i++) {
+        std::string fname = dnnFilenames[i];
+        if (fname == imgName) continue;
+
+        // DNN cosine distance
+        std::vector<float> curDnnNorm;
+        normalizeV(dnnData[i], curDnnNorm);
+        float dot = 0;
+        for (int j = 0; j < targetDnnNorm.size(); j++) {
+            dot += targetDnnNorm[j] * curDnnNorm[j];
+        }
+        float dnnDistance = 1 - dot;
+
+        // Center-focused color distance (flower is the centered subject)
+        cv::Mat img = cv::imread("olympus/" + fname);
+        float colorDistance = 1.0;
+        if (!img.empty()) {
+            std::vector<float> curColorVec = extractMultipleHistFullMiddle(img);
+            std::vector<float> curFull(curColorVec.begin(), curColorVec.begin() + chunkSize);
+            std::vector<float> curMiddle(curColorVec.begin() + chunkSize, curColorVec.end());
+            colorDistance = 0.3 * computeHistIntersection(targetFull, curFull)
+                          + 0.7 * computeHistIntersection(targetMiddle, curMiddle);
+        }
+
+        // DNN for semantics (knows what flowers are), color for visual similarity
+        float combined = 0.6 * dnnDistance + 0.4 * colorDistance;
+
+        pairs.push_back({combined, fname});
+    }
+
+    std::sort(pairs.begin(), pairs.end());
+    return pairs;
+}
+
+/*
   Prints the N file names with the smallest distance to target.
 
   int N the number of filenames to print.
@@ -293,39 +394,6 @@ void printFilenames(int N, std::vector<std::pair<float, std::string>> pairs) {
     for(int i = 0; i < N; i ++){
             printf("%s\n", pairs[i].second.c_str());
         }
-}
-
-/*
-  A helper function for task 5 that normazlizes a given vector.
-
-  std::vector<float> srcVector the vector that needs to be normalized.
-  std::vector<float> dstVector vector that holds the normalized vector.
-  returns int value indication of success or failure of running normalization.
-*/
-static int normalizeV(std::vector<float> srcVector, std::vector<float> &dstVector) {
-    if (srcVector.empty()) {
-        printf("Source vector contains no values\n");
-        return -1;
-    }
-
-    // Normalizes the vectors
-    // Calculuate the sum of squares
-    float sum = 0;
-
-    for (int i = 0; i < srcVector.size(); i++) {
-        sum += srcVector[i] * srcVector[i];
-    }
-
-    // Calculate length of vector 
-    float length = sqrt(sum);
-
-    for (int i = 0; i < srcVector.size(); i++) {
-        srcVector[i] = srcVector[i] / length;
-    }
-
-    dstVector = srcVector;
-
-    return 0;
 }
 
 /*
@@ -420,5 +488,24 @@ int main(int argc, char* argv[]){
 
 
     }
+
+    // Task 7: Custom License Plate Matching (texture + center color + DNN)
+    // Usage: ./matcher olympus/pic.0482.jpg ResNet18_olym.csv 5 lp
+    else if (method == "lp") {
+        // Extract just the filename (e.g. "pic.0482.jpg") for DNN lookup
+        std::string imgName = fs::path(imgArg).filename().string();
+
+        std::vector<std::pair<float, std::string>> pairs = customMatching(
+            targetImg, imgName, filenames, data);
+
+        printf("Top %d most similar:\n", N);
+        printFilenames(N, pairs);
+
+        printf("\nTop %d least similar:\n", N);
+        for (int i = pairs.size() - 1; i >= (int)pairs.size() - N; i--) {
+            printf("%s\n", pairs[i].second.c_str());
+        }
+    }
+
     return 0;
 }
