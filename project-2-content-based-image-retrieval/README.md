@@ -1,4 +1,4 @@
-# Project 2: Contnet Based Image Retrieval
+# Project 2: Content Based Image Retrieval
 **Drew Hill, Abhiram Banda**    
 CS5330 Pattern Recognition & Computer Vision
 
@@ -45,4 +45,7 @@ Run with: ./matcher image_path csv_file N method
 
 **Extension 2 (GUI):** All methods will automatically display the target image and the top matches in a window. Press any key to close the window.
 
+## Travel Days
+Use a travel day if working in this assignment can not qualify with the stuff happens clause. 
 
+I (Drew Hill) am still a few days behind on catching up on work from the medical condition affecting my eye. This affected my how much time I was able to work on this project and led to submission being a few hours late. 
