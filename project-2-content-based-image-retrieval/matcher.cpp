@@ -593,6 +593,11 @@ int main(int argc, char* argv[]){
         
         // Prints the N file names with the smallest distance to target.
         printFilenames(N, pairs);
+
+        for (int i = 0; i < N; i++) {
+            cv::Mat img = cv::imread("olympus/" + pairs[i].second);
+            cv::imshow(pairs[i].second, img);
+        }
     } 
     
     // Task 6: Compare DNN Embedding and Classic Features
