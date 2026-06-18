@@ -1,3 +1,11 @@
+/*
+  Drew Hill & Abhiram Banda
+  CS 5330 Pattern Recognition & Computer Vision
+  Summer 2026
+  main.cpp
+
+  Entry point for project 3
+*/
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "threshold.h"

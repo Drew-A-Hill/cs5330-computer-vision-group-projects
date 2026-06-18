@@ -1,5 +1,17 @@
+/*
+  Drew Hill & Abhiram Banda
+  CS 5330 Pattern Recognition & Computer Vision
+  Summer 2026
+
+  threshold.cpp
+
+  Implements thresholding functions to seperate dark objects from a white background.
+*/
 #include "threshold.h"
 
+/*
+  const cv::Mat &vs
+*/
 cv::Mat applyThreshold(const cv::Mat &vs) {
     if (vs.empty()) {
         std::cerr << "Error: Could not open or find the image." << std::endl;
@@ -53,6 +65,9 @@ cv::Mat applyThreshold(const cv::Mat &vs) {
     return binary;
 }
 
+/*
+  const cv::Mat &src
+*/
 cv::Mat extractVS(const cv::Mat &src){
     cv::Mat blurred;
     cv::GaussianBlur(src, blurred, cv::Size(5, 5), 0, 0);
