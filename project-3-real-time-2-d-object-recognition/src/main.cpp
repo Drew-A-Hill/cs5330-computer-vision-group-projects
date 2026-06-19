@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
         cv::Mat binary = applyThreshold(vs);                                              
         cv::imshow("Thresholded", binary);
 
-        cv::Mat cleaned = opening(binary, 4);
+        cv::Mat cleaned = closing(binary, 4);
        
         cv::imshow("Morphological", cleaned);
 
