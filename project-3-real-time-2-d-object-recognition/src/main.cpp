@@ -9,6 +9,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "threshold.h"
+#include "morpholocial-filter.h"
 
 int main(int argc, char *argv[]) {
     cv::Mat frame;
@@ -27,6 +28,9 @@ int main(int argc, char *argv[]) {
 
         cv::Mat binary = applyThreshold(vs);                                              
         cv::imshow("Thresholded", binary);
+
+        cv::Mat cleaned = closing(binary, 4);
+        cv::imshow("Morphological ", cleaned);
 
         cv::waitKey(0);
         return 0;
@@ -48,6 +52,10 @@ int main(int argc, char *argv[]) {
         cv::Mat vs = extractVS(frame);
         cv::Mat binary = applyThreshold(vs);                                              
         cv::imshow("Thresholded", binary);
+
+        cv::Mat cleaned = opening(binary, 4);
+       
+        cv::imshow("Morphological", cleaned);
 
 
         char key = cv::waitKey(30);
