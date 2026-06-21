@@ -10,6 +10,7 @@
 #include <opencv2/opencv.hpp>
 #include "threshold.h"
 #include "morpholocial-filter.h"
+#include "segmenting.h"
 
 int main(int argc, char *argv[]) {
     cv::Mat frame;
@@ -31,6 +32,17 @@ int main(int argc, char *argv[]) {
 
         cv::Mat cleaned = closing(binary, 4);
         cv::imshow("Morphological ", cleaned);
+
+        cv::Mat labels;
+        cv::Mat stats;
+        cv::Mat centroids;
+
+        int label_count = segment(cleaned, 8, labels, stats, centroids);
+        int main_label = find_main_region(stats, label_count, cleaned.rows, cleaned.cols, 200);
+
+        cv::Mat visualize = show_regions(labels, stats, label_count, 200);
+
+        cv::imshow("Segmented Regions", visualize);
 
         cv::waitKey(0);
         return 0;
@@ -56,7 +68,6 @@ int main(int argc, char *argv[]) {
         cv::Mat cleaned = closing(binary, 4);
        
         cv::imshow("Morphological", cleaned);
-
 
         char key = cv::waitKey(30);
         if (key == 'q') break;
