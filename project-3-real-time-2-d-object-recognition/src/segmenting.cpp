@@ -6,7 +6,7 @@
   segmenting.cpp
 
   Implements segmentation on a cleaned binary image using OpenCV connectedComponentsWithStats.
-  Then filters out regions that are two small or touches the border. Then identifies the main 
+  Then filters out regions that are too small or touches the border. Then identifies the main 
   region and produces a colored image indicating regions.
 */
 
@@ -62,8 +62,8 @@ int find_main_region(Mat &stats, int label_count, int rows, int cols, int min) {
         int width = stats.ptr<int>(i)[CC_STAT_WIDTH];
         int height = stats.ptr<int>(i)[CC_STAT_HEIGHT];
 
-        // Skips regions that touch the boundry of the image.
-        if ( x <= 0 || y <= 0 || x + width >= cols || y + height >= rows) {
+        // Skips regions that touch the boundary of the image.
+        if (x == 0 || y == 0 || x + width == cols || y + height == rows) {
             continue;
         }
 
@@ -86,21 +86,32 @@ int find_main_region(Mat &stats, int label_count, int rows, int cols, int min) {
 Mat show_regions(Mat &labels, Mat &stats, int label_count, int min) {
     Mat colored_map = Mat::zeros(labels.size(), CV_8UC3);
 
+    int rows = labels.rows;
+    int cols = labels.cols;
+
     std::vector<Vec3b> colors(label_count);
+
+    // Fixed seed so the same label IDs get consistent colors across frames
+    srand(42);
 
     for (int i = 0; i < label_count; i++) {
         int area = stats.ptr<int>(i)[CC_STAT_AREA];
+        int x = stats.ptr<int>(i)[CC_STAT_LEFT];
+        int y = stats.ptr<int>(i)[CC_STAT_TOP];
+        int width = stats.ptr<int>(i)[CC_STAT_WIDTH];
+        int height = stats.ptr<int>(i)[CC_STAT_HEIGHT];
 
-        if (area < min) {
+        // Filter out small regions and border-touching regions
+        if (area < min || x == 0 || y == 0 || x + width == cols || y + height == rows) {
             colors[i] = Vec3b(0, 0, 0);
         } else {
             colors[i] = Vec3b(rand() % 256, rand() % 256, rand() % 256);
         }
     }
 
-    for (int j = 0; j < labels.rows; j++) {
-        for (int k = 0; k < labels.cols; k++) {
-            int label = labels.ptr(j)[k];
+    for (int j = 0; j < rows; j++) {
+        for (int k = 0; k < cols; k++) {
+            int label = labels.at<int>(j, k);
 
             if (label > 0) {
                 colored_map.ptr<Vec3b>(j)[k] = colors[label];
