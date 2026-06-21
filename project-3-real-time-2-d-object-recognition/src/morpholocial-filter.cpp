@@ -21,13 +21,13 @@ using namespace cv;
   the target pixel is altered.
 
   cv::Mat &img - reference to the image being filtered.
-  int connected - indicates if the filter is a 4 connected or an 8 connected.
+  int shape - indicates if the filter is a 4 connected or an 8 connected.
   int output - indicates if we are acting on white or black target pixels.
   int size -  the size of the kernel i.e. 3x3 5x5 etc.
   int target[] - location of the target pixel.
   returns a int value indicating if the function was run succesfully.
 */
-int kernel(Mat &img, Mat &dst, int connected, int output, int size, int target[]) {
+int kernel(Mat &img, Mat &dst, int shape, int output, int size, int target[]) {
     if (img.empty()) {
         printf("No Image Found");
         return -1;
@@ -50,7 +50,7 @@ int kernel(Mat &img, Mat &dst, int connected, int output, int size, int target[]
             bool neighbor = true;
 
             // Enforces the shape of the 4 connected filter to indicate.
-            if (connected == 4) {
+            if (shape == 4) {
 
                 // Checks if pixel is target or is not a valid neighbor.
                 if (i == j) {
@@ -61,8 +61,8 @@ int kernel(Mat &img, Mat &dst, int connected, int output, int size, int target[]
             }
 
             // Finds start pixel for filter.
-            int adj_i = target[0] - 1 + i;
-            int adj_j = target[1] - 1 + j;
+            int adj_i = target[0] - ((size - 1) / 2) + i;
+            int adj_j = target[1] - ((size - 1) / 2) + j;
 
             int rows = img.rows - 1;
             int cols = img.cols - 1;
@@ -76,7 +76,6 @@ int kernel(Mat &img, Mat &dst, int connected, int output, int size, int target[]
 
             // Alters target pixel if neighbor conflicts.
             if (neighbor == true && row[adj_j] != (uchar)output) {
-                printf("Flipping pixel at %d -> %d - %d\n", img.ptr<uchar>(target[0])[target[1]], row[adj_j], output);
                 dst.ptr<uchar>(target[0])[target[1]] = row[adj_j];
                 return 1;
             }
