@@ -11,6 +11,8 @@
 #include "threshold.h"
 #include "morpholocial-filter.h"
 #include "segmenting.h"
+#include "features.h"
+
 
 int main(int argc, char *argv[]) {
     cv::Mat frame;
@@ -47,8 +49,34 @@ int main(int argc, char *argv[]) {
         int main_label = find_main_region(stats, label_count, inverted.rows, inverted.cols, 200);
 
         cv::Mat visualize = show_regions(labels, stats, label_count, 200);
-
         cv::imshow("Segmented Regions", visualize);
+
+        if (main_label >= 0) {
+            RegionFeatures features = computeFeatures(labels, main_label);
+
+            // Draw the oriented bounding box
+            cv::Point2f corners[4];
+            features.oriented_bbox.points(corners);
+            for (int i = 0; i < 4; i++) {
+                cv::line(frame, corners[i], corners[(i + 1) % 4], cv::Scalar(0, 255, 0), 2);
+            }
+
+            // Draw the axis of least central moment
+            float len = 100;
+            cv::Point2f center(features.centroid_x, features.centroid_y);
+            cv::Point2f endpoint(
+                center.x + len * cos(features.angle),
+                center.y + len * sin(features.angle)
+            );
+            cv::line(frame, center, endpoint, cv::Scalar(0, 0, 255), 2);
+
+            // Print feature values
+            std::cout << "Percent filled: " << features.percent_filled
+                      << " | H/W ratio: " << features.hw_ratio
+                      << " | Angle: " << features.angle * 180.0f / CV_PI << " deg" << std::endl;
+
+            cv::imshow("Features", frame);
+        }
 
         cv::waitKey(0);
         return 0;
@@ -86,6 +114,28 @@ int main(int argc, char *argv[]) {
 
         cv::Mat visualize = show_regions(labels, stats, label_count, 200);
         cv::imshow("Segmented Regions", visualize);
+
+        if (main_label >= 0) {
+            RegionFeatures features = computeFeatures(labels, main_label);
+
+            // Draw the oriented bounding box
+            cv::Point2f corners[4];
+            features.oriented_bbox.points(corners);
+            for (int i = 0; i < 4; i++) {
+                cv::line(frame, corners[i], corners[(i + 1) % 4], cv::Scalar(0, 255, 0), 2);
+            }
+
+            // Draw the axis of least central moment
+            float len = 100;
+            cv::Point2f center(features.centroid_x, features.centroid_y);
+            cv::Point2f endpoint(
+                center.x + len * cos(features.angle),
+                center.y + len * sin(features.angle)
+            );
+            cv::line(frame, center, endpoint, cv::Scalar(0, 0, 255), 2);
+
+            cv::imshow("Features", frame);
+        }
 
         char key = cv::waitKey(30);
         if (key == 'q') break;

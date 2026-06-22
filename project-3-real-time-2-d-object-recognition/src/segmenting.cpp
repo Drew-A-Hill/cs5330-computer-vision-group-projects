@@ -52,8 +52,9 @@ int find_main_region(Mat &stats, int label_count, int rows, int cols, int min) {
     for (int i = 0; i < label_count; i++) {
         int area = stats.ptr<int>(i)[CC_STAT_AREA];
 
-        // Checks if a region as atleast the minimum size.
-        if (area < min) {
+        // Skip regions that are too small or too large (background)
+        int max_area = (rows * cols) / 3;
+        if (area < min || area > max_area) {
             continue;
         }
 
@@ -62,8 +63,8 @@ int find_main_region(Mat &stats, int label_count, int rows, int cols, int min) {
         int width = stats.ptr<int>(i)[CC_STAT_WIDTH];
         int height = stats.ptr<int>(i)[CC_STAT_HEIGHT];
 
-        // Skips regions that touch the boundary of the image.
-        if (x == 0 || y == 0 || x + width == cols || y + height == rows) {
+        // Skip regions that touch or are within 6px of the boundary
+        if (x <= 6 || y <= 6 || x + width >= cols - 6 || y + height >= rows - 6) {
             continue;
         }
 

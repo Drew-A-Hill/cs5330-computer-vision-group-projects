@@ -2,7 +2,7 @@ CXX = g++
 CXXFLAGS = -std=c++17 $(shell pkg-config --cflags opencv4)
 LDFLAGS = $(shell pkg-config --libs opencv4)
 
-SRC = src/main.cpp src/threshold.cpp src/morpholocial-filter.cpp src/segmenting.cpp
+SRC = src/main.cpp src/threshold.cpp src/morpholocial-filter.cpp src/segmenting.cpp src/features.cpp
 
 main: $(SRC) src/threshold.h
 	$(CXX) -o main $(SRC) $(CXXFLAGS) $(LDFLAGS)
