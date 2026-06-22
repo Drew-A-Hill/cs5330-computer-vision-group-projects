@@ -12,6 +12,7 @@
 #include "morpholocial-filter.h"
 #include "segmenting.h"
 #include "features.h"
+#include "training.h"
 
 
 int main(int argc, char *argv[]) {
@@ -88,15 +89,14 @@ int main(int argc, char *argv[]) {
         std::cerr << "Error: could not open webcam" << std::endl;
         return -1;
     }
-
     while (true) {
         cap >> frame;
         if (frame.empty()) break;
 
         cv::imshow("Original", frame);
-        
+
         cv::Mat vs = extractVS(frame);
-        cv::Mat binary = applyThreshold(vs);                                              
+        cv::Mat binary = applyThreshold(vs);
         cv::imshow("Thresholded", binary);
 
         cv::Mat cleaned = closing(binary, 4);
@@ -115,8 +115,9 @@ int main(int argc, char *argv[]) {
         cv::Mat visualize = show_regions(labels, stats, label_count, 200);
         cv::imshow("Segmented Regions", visualize);
 
+        RegionFeatures features;
         if (main_label >= 0) {
-            RegionFeatures features = computeFeatures(labels, main_label);
+            features = computeFeatures(labels, main_label);
 
             // Draw the oriented bounding box
             cv::Point2f corners[4];
@@ -139,6 +140,15 @@ int main(int argc, char *argv[]) {
 
         char key = cv::waitKey(30);
         if (key == 'q') break;
+
+        // Training mode: press 'n' to label and save the current object
+        if (key == 'n' && main_label >= 0) {
+            std::string label;
+            std::cout << "Enter object label: ";
+            std::cin >> label;
+            saveTrainingData(label, features, true);
+            std::cout << "Saved: " << label << std::endl;
+        }
     }
 
     return 0;
