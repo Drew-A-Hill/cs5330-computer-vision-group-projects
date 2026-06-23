@@ -13,6 +13,8 @@
 #include "segmenting.h"
 #include "features.h"
 #include "training.h"
+#include "classifier.h"
+#include "csv_util.h"
 
 
 int main(int argc, char *argv[]) {
@@ -83,6 +85,21 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    // Read training data for classificatiom
+    std::vector<char*> labels_read;
+    std::vector<std::vector<float>> data;
+    int read_success = read_image_data_csv((char*)"training_data.csv", labels_read, data);
+
+    std::vector<float> std_dev;
+    bool loaded = false;
+
+    if (read_success == 0 && !data.empty()) {
+        std_dev = compute_std_dev(data);
+        loaded = true;
+    } else {
+        printf("No training data found, train by pressing n");
+    }
+
     // Otherwise, open webcam for live video
     cv::VideoCapture cap(0);
     if (!cap.isOpened()) {
@@ -99,7 +116,9 @@ int main(int argc, char *argv[]) {
         cv::Mat binary = applyThreshold(vs);
         cv::imshow("Thresholded", binary);
 
-        cv::Mat cleaned = closing(binary, 4);
+        cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(5, 5));
+        cv::Mat cleaned;
+        cv::morphologyEx(binary, cleaned, cv::MORPH_CLOSE, kernel);
         cv::imshow("Morphological", cleaned);
 
         cv::Mat inverted;
@@ -110,7 +129,7 @@ int main(int argc, char *argv[]) {
 
         cv::Mat labels, stats, centroids;
         int label_count = segment(inverted, 8, labels, stats, centroids);
-        int main_label = find_main_region(stats, label_count, inverted.rows, inverted.cols, 200);
+        int main_label = find_main_region(stats, label_count, inverted.rows, inverted.cols, 2000);
 
         cv::Mat visualize = show_regions(labels, stats, label_count, 200);
         cv::imshow("Segmented Regions", visualize);
@@ -134,6 +153,13 @@ int main(int argc, char *argv[]) {
                 center.y + len * sin(features.angle)
             );
             cv::line(frame, center, endpoint, cv::Scalar(0, 0, 255), 2);
+
+            // Classify object
+            std::vector<float> unknown = {features.percent_filled, features.hw_ratio};
+            std::string selected_label = classify(unknown, labels_read, data, std_dev, 5.0f);
+
+            // Adds the label name to the video stream
+            cv::putText(frame, selected_label, cv::Point(50, 50), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
 
             cv::imshow("Features", frame);
         }

@@ -20,6 +20,7 @@ struct RegionFeatures {
     cv::RotatedRect oriented_bbox;        // oriented bounding box (4 corners)
     float percent_filled;                 // region area / bounding box area
     float hw_ratio;                       // height / width ratio of bounding box
+    double hu_moments[7];
 };
 
 RegionFeatures computeFeatures(const cv::Mat &labels, int region_id);

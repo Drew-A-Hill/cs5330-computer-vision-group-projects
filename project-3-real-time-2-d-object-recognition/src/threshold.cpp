@@ -31,7 +31,7 @@ cv::Mat applyThreshold(const cv::Mat &vs) {
         // Sample every 16th pixel for speed
         for (int y = 0; y < vs.rows; y += 16) {
             for (int x = 0; x < vs.cols; x += 16) {
-                float pixel = (float)vs.at<uchar>(y, x);
+                float pixel = (float)vs.ptr<uchar>(y)[x];
 
                 // Assign pixel to whichever mean is closer
                 if (std::abs(pixel - mean1) < std::abs(pixel - mean2)) {
@@ -57,8 +57,8 @@ cv::Mat applyThreshold(const cv::Mat &vs) {
     cv::Mat binary(vs.rows, vs.cols, CV_8UC1);
     for (int y = 0; y < vs.rows; y++) {
         for (int x = 0; x < vs.cols; x++) {
-            uchar pixel = vs.at<uchar>(y, x);
-            binary.at<uchar>(y, x) = (pixel > threshold) ? 255 : 0;
+            uchar pixel = vs.ptr<uchar>(y)[x];
+            binary.ptr<uchar>(y)[x] = (pixel > threshold) ? 255 : 0;
         }
     }
 
@@ -79,7 +79,7 @@ cv::Mat extractVS(const cv::Mat &src){
     for (int y = 0; y < hsv.rows; y++) {
         for (int x = 0; x < hsv.cols; x++) {
             // Get pixel data (3 channels: H, S, V)
-            cv::Vec3b pixel = hsv.at<cv::Vec3b>(y, x);
+            cv::Vec3b pixel = hsv.ptr<cv::Vec3b>(y)[x];
             
             // Extract S and V values
             uchar saturation = pixel[1];
@@ -89,7 +89,7 @@ cv::Mat extractVS(const cv::Mat &src){
             if (vs_value < 0){
                 vs_value = 0;
             }
-            vs.at<uchar>(y, x) = (uchar)vs_value;
+            vs.ptr<uchar>(y)[x] = (uchar)vs_value;
         }
     }
     return vs;
