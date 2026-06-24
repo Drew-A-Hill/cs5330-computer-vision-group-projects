@@ -43,7 +43,8 @@ int saveTrainingData(const std::string &label, const RegionFeatures &features, b
         return -1;
     }
 
-    outfile << label << "," << features.percent_filled << "," << features.hw_ratio << "\n";
+    outfile << label << "," << features.percent_filled << "," << features.hw_ratio
+            << "," << features.hu_moments[0] << "," << features.hu_moments[1] << "\n";
     outfile.close();
 
     return 0;

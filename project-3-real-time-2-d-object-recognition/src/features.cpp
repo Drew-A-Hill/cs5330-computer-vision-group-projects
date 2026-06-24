@@ -86,6 +86,20 @@ RegionFeatures computeFeatures(const cv::Mat &labels, int region_id){
     // A square or circle gives ~1.0, an elongated shape gives a small value.
     float hw_ratio = height / width;
 
+    // Compute Hu moments from central moments.
+    // First normalize the central moments by area to make them scale invariant:
+    //   eta_pq = mu_pq / area^((p+q)/2 + 1)
+    // For second-order moments (p+q=2): eta = mu / area^2
+    double area = (double)count;
+    double eta20 = mu20 / (area * area);
+    double eta02 = mu02 / (area * area);
+    double eta11 = mu11 / (area * area);
+
+    // Hu moment 1: measures overall spread, invariant to rotation
+    double hu1 = eta20 + eta02;
+    // Hu moment 2: measures elongation/directionality, invariant to rotation
+    double hu2 = (eta20 - eta02) * (eta20 - eta02) + 4.0 * eta11 * eta11;
+
     // Pack results into struct
     RegionFeatures features;
     features.centroid_x = centroid_x;
@@ -94,6 +108,8 @@ RegionFeatures computeFeatures(const cv::Mat &labels, int region_id){
     features.oriented_bbox = bbox;
     features.percent_filled = percent_filled;
     features.hw_ratio = hw_ratio;
+    features.hu_moments[0] = hu1;
+    features.hu_moments[1] = hu2;
 
     return features;
 }

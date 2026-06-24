@@ -39,7 +39,7 @@ void run_evaluation(const string &test_folder) {
     vector<float> std_dev = compute_std_dev(data);
 
     // Fixed list of object labels, defines the row and column order of the matrix.
-    vector<string> object_labels = {"key", "hat", "pen", "headphones", "phone"};
+    vector<string> object_labels = {"key", "pen", "carrabeaner", "squeezee", "charger", "lighter", "watch", "orange", "fork", "pinecone"};
     int num_classes = object_labels.size();
 
     // Initializes a confusion matrix using confusion[true_label][predicted_label].
@@ -78,8 +78,8 @@ void run_evaluation(const string &test_folder) {
 
         // Compute features for the main region and classify it.
         RegionFeatures features = computeFeatures(lbl, main_label);
-        vector<float> unknown = {features.percent_filled, features.hw_ratio};
-        string predicted_label = classify(unknown, labels_read, data, std_dev, 5.0f);
+        vector<float> unknown = {features.percent_filled, features.hw_ratio, (float)features.hu_moments[0], (float)features.hu_moments[1]};
+        string predicted_label = classify(unknown, labels_read, data, std_dev, 8.0f);
 
         // Find the matrix indices for the true and predicted labels.
         int true_idx = -1, pred_idx = -1;
