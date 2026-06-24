@@ -13,6 +13,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <algorithm>
 #include "threshold.h"
 #include "morpholocial-filter.h"
 #include "segmenting.h"
@@ -30,6 +31,12 @@ using namespace std;
   const std::string &test_folder - path to folder of test images, where each filename starts with its true label followed by an underscore.
 */
 void run_evaluation(const string &test_folder) {
+    // Bail out cleanly if the folder is missing instead of throwing.
+    if (!filesystem::exists(test_folder) || !filesystem::is_directory(test_folder)) {
+        cerr << "Error: test folder not found: " << test_folder << endl;
+        return;
+    }
+
     // Load the training database so we have known objects to compare against.
     vector<char*> labels_read;
     vector<vector<float>> data;
