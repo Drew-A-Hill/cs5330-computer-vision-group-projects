@@ -13,6 +13,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <algorithm>
 #include "threshold.h"
 #include "morpholocial-filter.h"
 #include "segmenting.h"
@@ -30,6 +31,12 @@ using namespace std;
   const std::string &test_folder - path to folder of test images, where each filename starts with its true label followed by an underscore.
 */
 void run_evaluation(const string &test_folder) {
+    // Bail out cleanly if the folder is missing instead of throwing.
+    if (!filesystem::exists(test_folder) || !filesystem::is_directory(test_folder)) {
+        cerr << "Error: test folder not found: " << test_folder << endl;
+        return;
+    }
+
     // Load the training database so we have known objects to compare against.
     vector<char*> labels_read;
     vector<vector<float>> data;
@@ -38,8 +45,15 @@ void run_evaluation(const string &test_folder) {
     // Compute standard deviations for the scaled distance metric.
     vector<float> std_dev = compute_std_dev(data);
 
-    // Fixed list of object labels, defines the row and column order of the matrix.
-    vector<string> object_labels = {"key", "hat", "pen", "headphones", "phone"};
+    // Build the label set from whatever objects are actually in the training DB
+    // so the matrix matches the trained objects instead of a fixed guess.
+    vector<string> object_labels;
+    for (char *lbl : labels_read) {
+        string s(lbl);
+        if (find(object_labels.begin(), object_labels.end(), s) == object_labels.end()) {
+            object_labels.push_back(s);
+        }
+    }
     int num_classes = object_labels.size();
 
     // Initializes a confusion matrix using confusion[true_label][predicted_label].

@@ -7,7 +7,9 @@
   Entry point for project 3
 */
 #include <iostream>
+#include <filesystem>
 #include <opencv2/opencv.hpp>
+#include <opencv2/dnn.hpp>
 #include "threshold.h"
 #include "morpholocial-filter.h"
 #include "segmenting.h"
@@ -15,9 +17,18 @@
 #include "training.h"
 #include "classifier.h"
 #include "csv_util.h"
+#include "embedding.h"
+#include "evaluation.h"
 
 
 int main(int argc, char *argv[]) {
+    // Task 7: evaluation mode. Usage: ./main --eval <folder_of_labeled_images>
+    // where each filename starts with its true label, e.g. book_01.jpg
+    if (argc > 2 && std::string(argv[1]) == "--eval") {
+        run_evaluation(argv[2]);
+        return 0;
+    }
+
     cv::Mat frame;
 
     // If an image path is provided, process that single image
@@ -100,6 +111,16 @@ int main(int argc, char *argv[]) {
         printf("No training data found, train by pressing n");
     }
 
+    // Task 9: load the ResNet18 network and the saved embedding database.
+    cv::dnn::Net net = cv::dnn::readNetFromONNX("resnet18-v2-7.onnx");
+    bool net_ok = !net.empty();
+    if (!net_ok) {
+        std::cerr << "Warning: could not load resnet18-v2-7.onnx; embedding mode ('m') disabled" << std::endl;
+    }
+    std::vector<EmbeddingEntry> emb_db = load_embeddings("embedding_data.csv");
+    bool use_embedding = false;    // toggle with 'm'
+    float embed_threshold = 0.5f;  // cosine-distance cutoff for "Unknown"; tune as needed
+
     // Otherwise, open webcam for live video
     cv::VideoCapture cap(0);
     if (!cap.isOpened()) {
@@ -109,6 +130,8 @@ int main(int argc, char *argv[]) {
     while (true) {
         cap >> frame;
         if (frame.empty()) break;
+
+        cv::Mat clean_frame = frame.clone();  // overlay-free copy, saved by 's'
 
         cv::imshow("Original", frame);
 
@@ -154,18 +177,32 @@ int main(int argc, char *argv[]) {
             );
             cv::line(frame, center, endpoint, cv::Scalar(0, 0, 255), 2);
 
-            // Classify object
-            std::vector<float> unknown = {features.percent_filled, features.hw_ratio};
-            std::string selected_label = classify(unknown, labels_read, data, std_dev, 5.0f);
+            // Classify the object: hand-built features (Task 6) by default,
+            // or the ResNet18 embedding (Task 9) when toggled on with 'm'.
+            std::string selected_label;
+            if (use_embedding && net_ok) {
+                cv::Mat emb = compute_region_embedding(frame, labels, main_label, features, net);
+                selected_label = classify_embedding(emb, emb_db, embed_threshold);
+            } else {
+                std::vector<float> unknown = {features.percent_filled, features.hw_ratio};
+                selected_label = classify(unknown, labels_read, data, std_dev, 5.0f);
+            }
 
-            // Adds the label name to the video stream
-            cv::putText(frame, selected_label, cv::Point(50, 50), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
+            // Adds the label name (and active classifier) to the video stream
+            std::string mode = (use_embedding && net_ok) ? " [embedding]" : " [features]";
+            cv::putText(frame, selected_label + mode, cv::Point(50, 50), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
 
             cv::imshow("Features", frame);
         }
 
         char key = cv::waitKey(30);
         if (key == 'q') break;
+
+        // Toggle between the feature classifier (Task 6) and the embedding one (Task 9)
+        if (key == 'm') {
+            use_embedding = !use_embedding;
+            std::cout << "Classifier: " << (use_embedding ? "embedding (Task 9)" : "features (Task 6)") << std::endl;
+        }
 
         // Training mode: press 'n' to label and save the current object
         if (key == 'n' && main_label >= 0) {
@@ -174,6 +211,33 @@ int main(int argc, char *argv[]) {
             std::cin >> label;
             saveTrainingData(label, features, true);
             std::cout << "Saved: " << label << std::endl;
+        }
+
+        // Embedding training: press 'e' to save a ResNet18 embedding for the object
+        if (key == 'e' && main_label >= 0 && net_ok) {
+            std::string label;
+            std::cout << "Enter object label (embedding): ";
+            std::cin >> label;
+            cv::Mat emb = compute_region_embedding(frame, labels, main_label, features, net);
+            save_embedding(label, emb, true);
+            emb_db = load_embeddings("embedding_data.csv");
+            std::cout << "Saved embedding: " << label << std::endl;
+        }
+
+        // Capture a test image: press 's' to save the clean frame to test_images/<label>_<n>.jpg for use with --eval (Task 7).
+        if (key == 's' && !clean_frame.empty()) {
+            std::string label;
+            std::cout << "Enter label for test image: ";
+            std::cin >> label;
+            std::filesystem::create_directories("test_images");
+            int n = 1;
+            std::string path;
+            do {
+                path = "test_images/" + label + "_" + std::to_string(n) + ".jpg";
+                n++;
+            } while (std::filesystem::exists(path));
+            cv::imwrite(path, clean_frame);
+            std::cout << "Saved test image: " << path << std::endl;
         }
     }
 
