@@ -17,10 +17,7 @@
 #include "training.h"
 #include "classifier.h"
 #include "csv_util.h"
-<<<<<<< HEAD
-=======
 #include "embedding.h"
->>>>>>> 96f4519da736ed703cff88d815c8415143d14d9c
 #include "evaluation.h"
 
 
@@ -186,11 +183,6 @@ int main(int argc, char *argv[]) {
             );
             cv::line(frame, center, endpoint, cv::Scalar(0, 0, 255), 2);
 
-<<<<<<< HEAD
-            // Classify object
-            std::vector<float> unknown = {features.percent_filled, features.hw_ratio, (float)features.hu_moments[0], (float)features.hu_moments[1]};
-            std::string selected_label = classify(unknown, labels_read, data, std_dev, 8.0f);
-=======
             // Classify the object: hand-built features (Task 6) by default,
             // or the ResNet18 embedding (Task 9) when toggled on with 'm'.
             std::string selected_label;
@@ -201,7 +193,6 @@ int main(int argc, char *argv[]) {
                 std::vector<float> unknown = {features.percent_filled, features.hw_ratio};
                 selected_label = classify(unknown, labels_read, data, std_dev, 5.0f);
             }
->>>>>>> 96f4519da736ed703cff88d815c8415143d14d9c
 
             // Adds the label name (and active classifier) to the video stream
             std::string mode = (use_embedding && net_ok) ? " [embedding]" : " [features]";

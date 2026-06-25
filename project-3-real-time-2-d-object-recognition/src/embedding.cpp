@@ -59,7 +59,16 @@ void compute_axis_extents(const Mat &labels, int region_id, const RegionFeatures
 
 
 /*
+  Turns one region into an embedding. First it measures the regios size, then it rotates 
+  it upright and crops just the object, then runs that crop through ResNet18 to get the 
+  embedding.
 
+  Mat &frame - The original color image.
+  const Mat &labels - Region map.
+  int region_id - Which region to embed.
+  const RegionFeatures &features - The centroid and angle.
+  dnn::Net &net - The loaded ResNet18 network.
+  Returns the embedding as a single-row Mat of floats.
 */
 Mat compute_region_embedding(Mat &frame, const Mat &labels, int region_id, const RegionFeatures &features, dnn::Net &net) {
     float min_e1, max_e1, min_en2, max_e2;
@@ -76,7 +85,13 @@ Mat compute_region_embedding(Mat &frame, const Mat &labels, int region_id, const
     return embedding.clone();
 }
 
-// Cosine distance between two vectors (1 - cosine similarity). 0 means equal.
+/* 
+  Computes the cosine distance between two vectors.
+
+  cv::Mat &a - A vector to compare distance.
+  cv::Mat &b - A vector to compare distance.
+  Returns the cosine difference.
+*/
 float cosine_distance(Mat &a, Mat &b) {
     double dot = a.dot(b);
     double norm_a = norm(a);
@@ -87,6 +102,14 @@ float cosine_distance(Mat &a, Mat &b) {
     return (float)(1.0 - (dot / (norm_a * norm_b)));
 }
 
+/*
+  Classifies an unknown embedding by nearest neighbor against the database.
+
+  cv::Mat &unknown - The embedding to classify.
+  std::vector<EmbeddingEntry> &db - The labeled embedding database.
+  float threshold - Cosine distance cutoff to mark as unknown.
+  Returns a label.
+*/
 string classify_embedding(Mat &unknown, vector<EmbeddingEntry> &db, float threshold) {
     float min_dist = numeric_limits<float>::max();
     string selected_label = "Unknown";
@@ -107,7 +130,12 @@ string classify_embedding(Mat &unknown, vector<EmbeddingEntry> &db, float thresh
 }
 
 /*
-  
+  Saves one labeled embedding to embedding_data.csv.
+
+  const string &label - Name of the object.
+  Mat &embedding - The embedding to save.
+  bool append - True adds a new line and fales overwrites the file.
+  Returns 0 if it worked and -1 if the file wouldn't open.
 */
 int save_embedding(const string &label, Mat &embedding, bool append) {
     ofstream outfile;
@@ -135,7 +163,10 @@ int save_embedding(const string &label, Mat &embedding, bool append) {
 }
 
 /*
+  Reads the saved embeddings back from a file.
 
+  const string &filename - The CSV file to read.
+  Returns the list of saved embeddings.
 */
 vector<EmbeddingEntry> load_embeddings(const string &filename) {
     vector<EmbeddingEntry> db;
