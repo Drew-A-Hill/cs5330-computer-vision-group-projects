@@ -123,3 +123,97 @@ void draw_axis(Mat &src, Mat &rvec, Mat &tvec, pair<Mat, vector<double>> &intrin
     arrowedLine(src, img_points[0], img_points[2], Scalar(255, 0, 0), 2);
     arrowedLine(src, img_points[0], img_points[3], Scalar(0, 0, 255), 2);
 }
+
+/*
+  Draws a 3D house with a chimney floating above the board.
+
+  cv::Mat &src - current frame.
+  cv::Mat &rvec - rotation of chessboard relative to camera.
+  cv::Mat &tvec - location of chessboard relative to camera.
+  std::pair intrinsics - intrinsics camera_matrix and distortion.
+*/
+void draw_virtual_object(Mat &src, Mat &rvec, Mat &tvec, pair<Mat, vector<double>> &intrinsics) {
+    // 3D points for the house (z negative = above board)
+    vector<Vec3f> pts = {
+        // Base floor (z = -0.2, just above board)
+        Vec3f(2, -1, -0.2),  // 0: front-left
+        Vec3f(6, -1, -0.2),  // 1: front-right
+        Vec3f(6, -4, -0.2),  // 2: back-right
+        Vec3f(2, -4, -0.2),  // 3: back-left
+
+        // Top of walls (z = -3)
+        Vec3f(2, -1, -3),    // 4: front-left top
+        Vec3f(6, -1, -3),    // 5: front-right top
+        Vec3f(6, -4, -3),    // 6: back-right top
+        Vec3f(2, -4, -3),    // 7: back-left top
+
+        // Roof ridge (z = -4.5)
+        Vec3f(4, -1, -4.5),  // 8: front ridge
+        Vec3f(4, -4, -4.5),  // 9: back ridge
+
+        // Chimney (on the right side of the roof)
+        Vec3f(5,   -3.5, -3),    // 10: chimney base front-left
+        Vec3f(5.5, -3.5, -3),    // 11: chimney base front-right
+        Vec3f(5.5, -4,   -3),    // 12: chimney base back-right
+        Vec3f(5,   -4,   -3),    // 13: chimney base back-left
+        Vec3f(5,   -3.5, -5),    // 14: chimney top front-left
+        Vec3f(5.5, -3.5, -5),    // 15: chimney top front-right
+        Vec3f(5.5, -4,   -5),    // 16: chimney top back-right
+        Vec3f(5,   -4,   -5),    // 17: chimney top back-left
+
+        // Door (on front wall)
+        Vec3f(3.5, -1, -0.2),  // 18: door bottom-left
+        Vec3f(4.5, -1, -0.2),  // 19: door bottom-right
+        Vec3f(4.5, -1, -1.8),  // 20: door top-right
+        Vec3f(3.5, -1, -1.8),  // 21: door top-left
+    };
+
+    vector<Point2f> img_pts;
+    projectPoints(pts, rvec, tvec, intrinsics.first, intrinsics.second, img_pts);
+
+    // Walls (yellow)
+    Scalar wall_color(0, 220, 220);
+    // Base edges
+    line(src, img_pts[0], img_pts[1], wall_color, 2);
+    line(src, img_pts[1], img_pts[2], wall_color, 2);
+    line(src, img_pts[2], img_pts[3], wall_color, 2);
+    line(src, img_pts[3], img_pts[0], wall_color, 2);
+    // Top edges
+    line(src, img_pts[4], img_pts[5], wall_color, 2);
+    line(src, img_pts[5], img_pts[6], wall_color, 2);
+    line(src, img_pts[6], img_pts[7], wall_color, 2);
+    line(src, img_pts[7], img_pts[4], wall_color, 2);
+    // Vertical edges
+    line(src, img_pts[0], img_pts[4], wall_color, 2);
+    line(src, img_pts[1], img_pts[5], wall_color, 2);
+    line(src, img_pts[2], img_pts[6], wall_color, 2);
+    line(src, img_pts[3], img_pts[7], wall_color, 2);
+
+    // Roof (red)
+    Scalar roof_color(0, 0, 255);
+    line(src, img_pts[4], img_pts[8], roof_color, 2);
+    line(src, img_pts[5], img_pts[8], roof_color, 2);
+    line(src, img_pts[6], img_pts[9], roof_color, 2);
+    line(src, img_pts[7], img_pts[9], roof_color, 2);
+    line(src, img_pts[8], img_pts[9], roof_color, 2);
+
+    // Chimney (gray)
+    Scalar chimney_color(120, 120, 120);
+    // Top
+    line(src, img_pts[14], img_pts[15], chimney_color, 2);
+    line(src, img_pts[15], img_pts[16], chimney_color, 2);
+    line(src, img_pts[16], img_pts[17], chimney_color, 2);
+    line(src, img_pts[17], img_pts[14], chimney_color, 2);
+    // Verticals
+    line(src, img_pts[10], img_pts[14], chimney_color, 2);
+    line(src, img_pts[11], img_pts[15], chimney_color, 2);
+    line(src, img_pts[12], img_pts[16], chimney_color, 2);
+    line(src, img_pts[13], img_pts[17], chimney_color, 2);
+
+    // Door (cyan)
+    Scalar door_color(255, 200, 0);
+    line(src, img_pts[18], img_pts[19], door_color, 2);
+    line(src, img_pts[19], img_pts[20], door_color, 2);
+    line(src, img_pts[20], img_pts[21], door_color, 2);
+    line(src, img_pts[21], img_pts[18], door_color, 2);
+}

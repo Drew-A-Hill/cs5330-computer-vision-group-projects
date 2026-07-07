@@ -349,6 +349,7 @@ int ar_runner(string intrinsics_path, vector<string> args, char orientation) {
         if (computed) {
             cout << "rvec: " << rvec << "\ntvec: " << tvec << endl;
             draw_axis(dst, rvec, tvec, intrinsics);
+            draw_virtual_object(dst, rvec, tvec, intrinsics);
         }
         
         // Displays window.
