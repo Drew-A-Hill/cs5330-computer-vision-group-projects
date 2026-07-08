@@ -125,6 +125,62 @@ void draw_axis(Mat &src, Mat &rvec, Mat &tvec, pair<Mat, vector<double>> &intrin
 }
 
 /*
+  Hides the checkerboard target by projecting the outer board boundary and
+  filling it with the average color sampled from just outside the boundary.
+
+  cv::Mat &src - current frame.
+  cv::Mat &rvec - rotation of chessboard relative to camera.
+  cv::Mat &tvec - location of chessboard relative to camera.
+  cv::Size size - internal corner grid size (9x6).
+  std::pair intrinsics - intrinsics camera_matrix and distortion.
+*/
+void hide_target(Mat &src, Mat &rvec, Mat &tvec, Size size, pair<Mat, vector<double>> &intrinsics) {
+    // Matches point_set convention: (row, -col, 0)
+    // Outer board is half a square beyond internal corners in each direction.
+    float r_max = size.height - 1;  // max row index (5)
+    float c_max = size.width - 1;   // max col index (8)
+    float margin = 1.0;
+    vector<Vec3f> outer_pts = {
+        Vec3f(-margin,        margin, 0),
+        Vec3f(r_max + margin, margin, 0),
+        Vec3f(r_max + margin, -(c_max + margin), 0),
+        Vec3f(-margin,        -(c_max + margin), 0)
+    };
+
+    vector<Point2f> img_pts;
+    projectPoints(outer_pts, rvec, tvec, intrinsics.first, intrinsics.second, img_pts);
+
+    // Sample average color from just outside the board boundary.
+    Scalar avg_color(0, 0, 0);
+    int samples = 0;
+    for (int i = 0; i < 4; i++) {
+        Point2f mid = (img_pts[i] + img_pts[(i + 1) % 4]) * 0.5;
+        Point2f center = (img_pts[0] + img_pts[1] + img_pts[2] + img_pts[3]) * 0.25;
+        Point2f dir = mid - center;
+        Point2f sample_pt = mid + dir * 0.15;
+        int sx = (int)sample_pt.x;
+        int sy = (int)sample_pt.y;
+        if (sx >= 0 && sx < src.cols && sy >= 0 && sy < src.rows) {
+            Vec3b c = src.at<Vec3b>(sy, sx);
+            avg_color[0] += c[0];
+            avg_color[1] += c[1];
+            avg_color[2] += c[2];
+            samples++;
+        }
+    }
+    if (samples > 0) {
+        avg_color /= samples;
+    }
+
+    // Fill the board region with the sampled color.
+    vector<Point> poly;
+    for (auto &p : img_pts) {
+        poly.push_back(Point((int)p.x, (int)p.y));
+    }
+    fillConvexPoly(src, poly, avg_color);
+}
+
+/*
   Draws a 3D house with a chimney floating above the board.
 
   cv::Mat &src - current frame.

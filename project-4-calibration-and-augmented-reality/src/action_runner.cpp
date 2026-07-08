@@ -306,6 +306,8 @@ int ar_runner(string intrinsics_path, vector<string> args, char orientation) {
     // Builds the matching 3D points for the board.
     vector<Vec3f> saved_point_set = point_set(size);
 
+    bool hiding = false;
+
     for (;;) {
         // Gets the frame if not an image
         if (input_type != "img") {
@@ -348,6 +350,9 @@ int ar_runner(string intrinsics_path, vector<string> args, char orientation) {
         // Draws axis if computed
         if (computed) {
             cout << "rvec: " << rvec << "\ntvec: " << tvec << endl;
+            if (hiding) {
+                hide_target(dst, rvec, tvec, size, intrinsics);
+            }
             draw_axis(dst, rvec, tvec, intrinsics);
             draw_virtual_object(dst, rvec, tvec, intrinsics);
         }
@@ -358,6 +363,9 @@ int ar_runner(string intrinsics_path, vector<string> args, char orientation) {
 
         if (key == 'q') {
             return 1;
+        } else if (key == 't') {
+            hiding = !hiding;
+            cout << "Hide target: " << (hiding ? "ON" : "OFF") << endl;
         }
     }
 
