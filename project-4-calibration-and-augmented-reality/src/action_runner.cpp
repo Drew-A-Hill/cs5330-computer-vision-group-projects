@@ -259,23 +259,19 @@ int ar_runner(string intrinsics_path, vector<string> args, char orientation) {
         }
 
     } else {
-        // Creates file path from arguments
-        string dir = "../";
         string file_name = args[1];
-        string file_path = dir + file_name;
 
         if (input_type == "vid") {
-            cap.open(file_path);
+            cap.open(file_name);
 
         } else if (input_type == "img") {
-            img = imread(file_path);
+            img = imread(file_name);
 
         } else {
-            // Prints error message if wrong arguments are being pased.
-            cout << "\nError:\n" 
+            cout << "\nError:\n"
                  << input_type
-                 << " is not a valid action selection. " 
-                 << "Requires use of one of the following action: web, mobile, vid, img. " 
+                 << " is not a valid action selection. "
+                 << "Requires use of one of the following action: web, mobile, vid, img. "
                  << "\nExample: ./main mobile 0.11.23.1\n"
                  << endl;
         }
