@@ -89,7 +89,7 @@ We implemented a feature that hides the checkerboard by projecting the outer boa
 We built two virtual objects instead of one. A 3D house and a 3D rocket. The user can toggle between them live with the `r` key.
  
 ### Extension 3
-The system supports loading a static image of the checkerboard and overlaying virtual objects onto it using the saved intrinsic parameters. Run with: ./main ar img <path_to_image>. While the detection and projection work, the results are not as clean as with live video. A perfectly flat, head on checkerboard image provides very little perspective information to estimate depth, causing the virtual object to appear stretched or distorted.
+The system supports loading a static image of the checkerboard and overlaying virtual objects onto it using the saved intrinsic parameters. Run with: ./main ar img <path_to_image>. While the detection and projection work, the results are not as clean as with live video. A perfectly flat, headon checkerboard image provides very little perspective information to estimate depth, causing the virtual object to appear stretched or distorted.
 
 ## Travel Days  
 We do not need to use any travel days.
