@@ -30,5 +30,6 @@ bool compute_pose(
 
 void draw_axis(Mat &src, Mat &rvec, Mat &tvec, pair<Mat, vector<double>> &intrinsics);
 void draw_virtual_object(Mat &src, Mat &rvec, Mat &tvec, pair<Mat, vector<double>> &intrinsics);
+void hide_target(Mat &src, Mat &rvec, Mat &tvec, Size size, pair<Mat, vector<double>> &intrinsics);
 
 #endif
