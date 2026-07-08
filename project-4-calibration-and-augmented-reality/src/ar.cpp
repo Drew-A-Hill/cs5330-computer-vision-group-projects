@@ -273,3 +273,120 @@ void draw_virtual_object(Mat &src, Mat &rvec, Mat &tvec, pair<Mat, vector<double
     line(src, img_pts[20], img_pts[21], door_color, 2);
     line(src, img_pts[21], img_pts[18], door_color, 2);
 }
+
+/*
+  Draws a 3D rocket ship floating above the board with an octagonal body,
+  nose cone, fins, a window, and exhaust flames.
+
+  cv::Mat &src - current frame.
+  cv::Mat &rvec - rotation of chessboard relative to camera.
+  cv::Mat &tvec - location of chessboard relative to camera.
+  std::pair intrinsics - intrinsics camera_matrix and distortion.
+*/
+void draw_rocket(Mat &src, Mat &rvec, Mat &tvec, pair<Mat, vector<double>> &intrinsics) {
+    // Center the rocket at (3, -3) on the board
+    float cx = 3.0, cy = -3.0;
+    float r = 1.0; // radius of octagonal body
+
+    // Build octagon vertices for bottom ring (z = -0.5) and top ring (z = -5)
+    // and nose cone tip (z = -6.5)
+    vector<Vec3f> pts;
+
+    // 0-7: bottom octagon (z = -0.5)
+    // 8-15: top octagon (z = -5)
+    for (int ring = 0; ring < 2; ring++) {
+        float z = (ring == 0) ? -0.5 : -5.0;
+        for (int i = 0; i < 8; i++) {
+            float angle = i * CV_PI / 4.0;
+            float x = cx + r * cos(angle);
+            float y = cy + r * sin(angle);
+            pts.push_back(Vec3f(x, y, z));
+        }
+    }
+
+    // 16: nose cone tip
+    pts.push_back(Vec3f(cx, cy, -6.5));
+
+    // 17-20: fin 1 (front, attached at octagon vertex 0)
+    float fin_out = 1.8;
+    pts.push_back(Vec3f(cx + r,       cy, -0.5));   // 17: base bottom
+    pts.push_back(Vec3f(cx + fin_out,  cy, -0.5));   // 18: outer bottom
+    pts.push_back(Vec3f(cx + fin_out,  cy, -1.5));   // 19: outer top
+    pts.push_back(Vec3f(cx + r,        cy, -2.0));   // 20: base top
+
+    // 21-24: fin 2 (left, attached at octagon vertex 2)
+    pts.push_back(Vec3f(cx, cy + r,       -0.5));   // 21
+    pts.push_back(Vec3f(cx, cy + fin_out, -0.5));   // 22
+    pts.push_back(Vec3f(cx, cy + fin_out, -1.5));   // 23
+    pts.push_back(Vec3f(cx, cy + r,       -2.0));   // 24
+
+    // 25-28: fin 3 (back, attached at octagon vertex 4)
+    pts.push_back(Vec3f(cx - r,       cy, -0.5));   // 25
+    pts.push_back(Vec3f(cx - fin_out, cy, -0.5));   // 26
+    pts.push_back(Vec3f(cx - fin_out, cy, -1.5));   // 27
+    pts.push_back(Vec3f(cx - r,       cy, -2.0));   // 28
+
+    // 29-32: fin 4 (right, attached at octagon vertex 6)
+    pts.push_back(Vec3f(cx, cy - r,       -0.5));   // 29
+    pts.push_back(Vec3f(cx, cy - fin_out, -0.5));   // 30
+    pts.push_back(Vec3f(cx, cy - fin_out, -1.5));   // 31
+    pts.push_back(Vec3f(cx, cy - r,       -2.0));   // 32
+
+    // 33-36: window (diamond shape on the body, front-facing)
+    pts.push_back(Vec3f(cx + r + 0.01, cy, -3.5));  // 33: right
+    pts.push_back(Vec3f(cx + r + 0.01, cy + 0.4, -3.8)); // 34: top
+    pts.push_back(Vec3f(cx + r + 0.01, cy, -4.1));  // 35: left
+    pts.push_back(Vec3f(cx + r + 0.01, cy - 0.4, -3.8)); // 36: bottom
+
+    // 37-40: exhaust flame tips
+    pts.push_back(Vec3f(cx,       cy,       0.8));   // 37: center flame
+    pts.push_back(Vec3f(cx + 0.3, cy + 0.3, 0.5));  // 38: side flame 1
+    pts.push_back(Vec3f(cx - 0.3, cy + 0.3, 0.5));  // 39: side flame 2
+    pts.push_back(Vec3f(cx,       cy - 0.3, 0.5));   // 40: side flame 3
+
+    vector<Point2f> img_pts;
+    projectPoints(pts, rvec, tvec, intrinsics.first, intrinsics.second, img_pts);
+
+    // Body (white) - octagon rings and vertical edges
+    Scalar body_color(255, 255, 255);
+    for (int i = 0; i < 8; i++) {
+        int next = (i + 1) % 8;
+        line(src, img_pts[i], img_pts[next], body_color, 2);           // bottom ring
+        line(src, img_pts[i + 8], img_pts[next + 8], body_color, 2);   // top ring
+        line(src, img_pts[i], img_pts[i + 8], body_color, 2);          // verticals
+    }
+
+    // Nose cone (red) - lines from top ring to tip
+    Scalar nose_color(0, 0, 255);
+    for (int i = 0; i < 8; i++) {
+        line(src, img_pts[i + 8], img_pts[16], nose_color, 2);
+    }
+
+    // Fins (green)
+    Scalar fin_color(0, 200, 0);
+    for (int f = 0; f < 4; f++) {
+        int base = 17 + f * 4;
+        line(src, img_pts[base], img_pts[base + 1], fin_color, 2);
+        line(src, img_pts[base + 1], img_pts[base + 2], fin_color, 2);
+        line(src, img_pts[base + 2], img_pts[base + 3], fin_color, 2);
+        line(src, img_pts[base + 3], img_pts[base], fin_color, 2);
+    }
+
+    // Window (cyan)
+    Scalar window_color(255, 255, 0);
+    line(src, img_pts[33], img_pts[34], window_color, 2);
+    line(src, img_pts[34], img_pts[35], window_color, 2);
+    line(src, img_pts[35], img_pts[36], window_color, 2);
+    line(src, img_pts[36], img_pts[33], window_color, 2);
+
+    // Exhaust flames (orange/yellow)
+    Scalar flame_color(0, 140, 255);
+    // Flames from bottom ring vertices to flame tips
+    line(src, img_pts[0], img_pts[37], flame_color, 2);
+    line(src, img_pts[2], img_pts[37], flame_color, 2);
+    line(src, img_pts[4], img_pts[37], flame_color, 2);
+    line(src, img_pts[6], img_pts[37], flame_color, 2);
+    line(src, img_pts[1], img_pts[38], flame_color, 1);
+    line(src, img_pts[3], img_pts[39], flame_color, 1);
+    line(src, img_pts[5], img_pts[40], flame_color, 1);
+}

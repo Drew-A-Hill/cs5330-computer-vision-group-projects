@@ -303,6 +303,7 @@ int ar_runner(string intrinsics_path, vector<string> args, char orientation) {
     vector<Vec3f> saved_point_set = point_set(size);
 
     bool hiding = false;
+    bool show_rocket = false;
 
     for (;;) {
         // Gets the frame if not an image
@@ -350,7 +351,11 @@ int ar_runner(string intrinsics_path, vector<string> args, char orientation) {
                 hide_target(dst, rvec, tvec, size, intrinsics);
             }
             draw_axis(dst, rvec, tvec, intrinsics);
-            draw_virtual_object(dst, rvec, tvec, intrinsics);
+            if (show_rocket) {
+                draw_rocket(dst, rvec, tvec, intrinsics);
+            } else {
+                draw_virtual_object(dst, rvec, tvec, intrinsics);
+            }
         }
         
         // Displays window.
@@ -362,6 +367,9 @@ int ar_runner(string intrinsics_path, vector<string> args, char orientation) {
         } else if (key == 't') {
             hiding = !hiding;
             cout << "Hide target: " << (hiding ? "ON" : "OFF") << endl;
+        } else if (key == 'r') {
+            show_rocket = !show_rocket;
+            cout << "Object: " << (show_rocket ? "Rocket" : "House") << endl;
         }
     }
 
