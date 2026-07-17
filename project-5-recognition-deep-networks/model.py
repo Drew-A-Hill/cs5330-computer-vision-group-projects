@@ -147,11 +147,14 @@ for t in range(epochs):
 print("Done!")
 
 ## Plot training and testing error
-plt.figure(figsize=(8, 5))
-plt.plot(train_counter, train_losses, color='blue', label="Train loss")
-plt.scatter(test_counter, test_losses, color='red', zorder=5, label="Test loss")
-plt.xlabel("number of training examples seen")
-plt.ylabel("negative log likelihood loss")
-plt.legend()
-plt.savefig("training_test_error.png", dpi=150, bbox_inches='tight')
-plt.show()
+# plt.figure(figsize=(8, 5))
+# plt.plot(train_counter, train_losses, color='blue', label="Train loss")
+# plt.scatter(test_counter, test_losses, color='red', zorder=5, label="Test loss")
+# plt.xlabel("number of training examples seen")
+# plt.ylabel("negative log likelihood loss")
+# plt.legend()
+# plt.savefig("training_test_error.png", dpi=150, bbox_inches='tight')
+# plt.show()
+
+##Task D - Save the Model
+torch.save(model.state_dict(), 'model_weights.pth')
