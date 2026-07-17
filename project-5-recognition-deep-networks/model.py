@@ -1,6 +1,8 @@
+import os
 import torch
-from torch.utils.data import Dataset
-from torchvision import datasets
+from torch import nn
+from torch.utils.data import Dataset, DataLoader
+from torchvision import datasets, transforms
 from torchvision.transforms import v2
 import matplotlib.pyplot as plt
 
@@ -48,3 +50,28 @@ for i in range(1, cols * rows + 1):
     plt.axis("off")
     plt.imshow(img.squeeze(), cmap="gray")
 plt.show()
+
+train_dataloader = DataLoader(training_data, batch_size=64)
+test_dataloader = DataLoader(test_data, batch_size=64)
+
+class NeuralNetwork(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 10, 5)
+        self.pool1 = nn.MaxPool2d(kernel_size=2)
+        self.conv2 = nn.Conv2d(10, 20, 5)
+        self.drop1 = nn.Dropout(0.5)
+        self.pool2 = nn.MaxPool2d(kernel_size=2)
+        self.linear1 = nn.Linear(in_features=20 * 4 * 4, out_features=50)
+        self.linear2 = nn.Linear(in_features=50, out_features=10)
+
+
+    def forward(self, x):
+        x = nn.functional.relu(self.pool1(self.conv1(x)))
+        x = nn.functional.relu(self.pool2(self.drop1(self.conv2(x))))
+        x = x.view(-1, 20 * 4 * 4)
+        x = nn.functional.relu(self.linear1(x))
+        x = nn.functional.log_softmax(self.linear2(x), dim=1)
+        return x
+
+model = NeuralNetwork()
