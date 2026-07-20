@@ -74,87 +74,88 @@ class NeuralNetwork(nn.Module):
         x = nn.functional.log_softmax(self.linear2(x), dim=1)
         return x
 
-model = NeuralNetwork()
+if __name__ == "__main__":
+    model = NeuralNetwork()
 
-##Hyperparameters
-learning_rate = 1e-3
-batch_size = 64
-epochs = 5
+    ##Hyperparameters
+    learning_rate = 1e-2
+    batch_size = 64
+    epochs = 8
 
-## Using NLLLoss because its better for classification
-loss_fn = nn.NLLLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+    ## Using NLLLoss because its better for classification
+    loss_fn = nn.NLLLoss()
+    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
-train_losses = []
-train_counter = []
+    train_losses = []
+    train_counter = []
 
 
-def training_loop(dataloader, model, loss_fn, optimizer):
-    size = len(dataloader.dataset)
-    ## Set the model to training mode - important for batch normalization and dropout layers
-    model.train()
-    for batch, (X, y) in enumerate(dataloader):
-        pred = model(X)
-        loss = loss_fn(pred, y)
-
-        ##Back propagation
-        loss.backward()
-        optimizer.step()
-        optimizer.zero_grad()
-
-        ## Gthering the losses and #of examples for the plot
-        train_losses.append(loss.item())
-        train_counter.append(examples_seen[0])
-        examples_seen[0] += len(X)
-
-        if batch % 100 == 0:
-            current = batch * batch_size + len(X)
-            print(f"loss: {loss.item():>7f}  [{current:>5d}/{size:>5d}]")
-
-def test_loop(dataloader, model, loss_fn):
-    # Set the model to evaluation mode - important for batch normalization and dropout layers
-    # Unnecessary in this situation but added for best practices
-    model.eval()
-    size = len(dataloader.dataset)
-    num_batches = len(dataloader)
-    test_loss, correct = 0, 0
-
-    # Evaluating the model with torch.no_grad() ensures that no gradients are computed during test mode
-    # also serves to reduce unnecessary gradient computations and memory usage for tensors with requires_grad=True
-    with torch.no_grad():
-        for X, y in dataloader:
+    def training_loop(dataloader, model, loss_fn, optimizer):
+        size = len(dataloader.dataset)
+        ## Set the model to training mode - important for batch normalization and dropout layers
+        model.train()
+        for batch, (X, y) in enumerate(dataloader):
             pred = model(X)
-            test_loss += loss_fn(pred, y).item()
-            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+            loss = loss_fn(pred, y)
 
-    test_loss /= num_batches
-    correct /= size
-    print(f"Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f}")
-    return test_loss
+            ##Back propagation
+            loss.backward()
+            optimizer.step()
+            optimizer.zero_grad()
 
-## Gathering the losses and #of examples for the plot
-test_losses = []
-test_counter = []
-examples_seen = [0]
+            ## Gthering the losses and #of examples for the plot
+            train_losses.append(loss.item())
+            train_counter.append(examples_seen[0])
+            examples_seen[0] += len(X)
 
-for t in range(epochs):
-    print(f"Epoch {t+1}\n-------------------------------")
-    training_loop(train_dataloader, model, loss_fn, optimizer)
-    print("Test set: ", end="")
-    test_loss = test_loop(test_dataloader, model, loss_fn)
-    test_losses.append(test_loss)
-    test_counter.append(examples_seen[0])
-print("Done!")
+            if batch % 100 == 0:
+                current = batch * batch_size + len(X)
+                print(f"loss: {loss.item():>7f}  [{current:>5d}/{size:>5d}]")
 
-## Plot training and testing error
-# plt.figure(figsize=(8, 5))
-# plt.plot(train_counter, train_losses, color='blue', label="Train loss")
-# plt.scatter(test_counter, test_losses, color='red', zorder=5, label="Test loss")
-# plt.xlabel("number of training examples seen")
-# plt.ylabel("negative log likelihood loss")
-# plt.legend()
-# plt.savefig("training_test_error.png", dpi=150, bbox_inches='tight')
-# plt.show()
+    def test_loop(dataloader, model, loss_fn):
+        # Set the model to evaluation mode - important for batch normalization and dropout layers
+        # Unnecessary in this situation but added for best practices
+        model.eval()
+        size = len(dataloader.dataset)
+        num_batches = len(dataloader)
+        test_loss, correct = 0, 0
 
-##Task D - Save the Model
-torch.save(model.state_dict(), 'model_weights.pth')
+        # Evaluating the model with torch.no_grad() ensures that no gradients are computed during test mode
+        # also serves to reduce unnecessary gradient computations and memory usage for tensors with requires_grad=True
+        with torch.no_grad():
+            for X, y in dataloader:
+                pred = model(X)
+                test_loss += loss_fn(pred, y).item()
+                correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+
+        test_loss /= num_batches
+        correct /= size
+        print(f"Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f}")
+        return test_loss
+
+    ## Gathering the losses and #of examples for the plot
+    test_losses = []
+    test_counter = []
+    examples_seen = [0]
+
+    for t in range(epochs):
+        print(f"Epoch {t+1}\n-------------------------------")
+        training_loop(train_dataloader, model, loss_fn, optimizer)
+        print("Test set: ", end="")
+        test_loss = test_loop(test_dataloader, model, loss_fn)
+        test_losses.append(test_loss)
+        test_counter.append(examples_seen[0])
+    print("Done!")
+
+    ## Plot training and testing error
+    # plt.figure(figsize=(8, 5))
+    # plt.plot(train_counter, train_losses, color='blue', label="Train loss")
+    # plt.scatter(test_counter, test_losses, color='red', zorder=5, label="Test loss")
+    # plt.xlabel("number of training examples seen")
+    # plt.ylabel("negative log likelihood loss")
+    # plt.legend()
+    # plt.savefig("training_test_error.png", dpi=150, bbox_inches='tight')
+    # plt.show()
+
+    ##Task D - Save the Model
+    torch.save(model.state_dict(), 'model_weights.pth')
