@@ -1,23 +1,19 @@
 from matplotlib import pyplot as plt
 import torch
-from model import NeuralNetwork, test_data, test_dataloader
+from model import NeuralNetwork, test_data
 from torch import nn
 
 model = NeuralNetwork() 
 model.load_state_dict(torch.load('model_weights.pth', weights_only=True))
 model.eval()
 
-# for i in range(10):
-#     img, label = test_data[i]
-
-
-#     pred = model(img.unsqueeze(0))
-#     pred_digit = pred.argmax()
-#     tensors = pred.data.tolist()[0]
-#     tensors = [round(x, 2) for x in tensors]
-
-    
-#     print(tensors, label, pred_digit)
+for i in range(10):
+    img, label = test_data[i]
+    pred = model(img.unsqueeze(0))
+    pred_digit = pred.argmax()
+    tensors = pred.data.tolist()[0]
+    tensors = [round(x, 2) for x in tensors]
+    print(tensors, label, pred_digit)
 
 
 # From the example: plots the first 6 digits of the test dataset. 
