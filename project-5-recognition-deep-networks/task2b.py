@@ -3,6 +3,7 @@ import cv2
 import matplotlib.pyplot as plt
 from model import NeuralNetwork, training_data
 
+# Instantiates our NeuralNetwork class and loads it with the saved weights
 model = NeuralNetwork()
 model.load_state_dict(torch.load('model_weights.pth', weights_only=True))
 model.eval()

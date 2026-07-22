@@ -2,10 +2,11 @@ from model import NeuralNetwork
 import torch
 import matplotlib.pyplot as plt
 
+# Instantiates our NeuralNetwork class and loads it with the saved weights
 model = NeuralNetwork() 
 model.load_state_dict(torch.load('model_weights.pth', weights_only=True))
-#model.eval()
 
+# Gets the shape and weights of the first convolutional layer
 weights = model.conv1.weight
 
 print(model)                                                                                                   
