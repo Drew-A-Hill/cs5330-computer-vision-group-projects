@@ -38,22 +38,23 @@ labels_map = {
     9: "Nine",
 }
 
-## From the example: plots the first 6 digits of the test dataset. 
-# figure = plt.figure(figsize=(8, 8))
-# cols, rows = 2, 3
-# j = 0
-# for i in range(1, cols * rows + 1):
-#     img, label = test_data[j]
-#     j+=1
-#     figure.add_subplot(rows, cols, i)
-#     plt.title(labels_map[label])
-#     plt.axis("off")
-#     plt.imshow(img.squeeze(), cmap="gray")
-# plt.show()
+# From the example: plots the first 6 digits of the test dataset. 
+figure = plt.figure(figsize=(8, 8))
+cols, rows = 2, 3
+j = 0
+for i in range(1, cols * rows + 1):
+    img, label = test_data[j]
+    j+=1
+    figure.add_subplot(rows, cols, i)
+    plt.title(labels_map[label])
+    plt.axis("off")
+    plt.imshow(img.squeeze(), cmap="gray")
+plt.show()
 
 train_dataloader = DataLoader(training_data, batch_size=64)
 test_dataloader = DataLoader(test_data, batch_size=64)
 
+##Neural Network class with the specified layers
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super().__init__()
@@ -138,6 +139,7 @@ if __name__ == "__main__":
     test_counter = []
     examples_seen = [0]
 
+    ## Training - loop through the number of epochs
     for t in range(epochs):
         print(f"Epoch {t+1}\n-------------------------------")
         training_loop(train_dataloader, model, loss_fn, optimizer)
@@ -147,15 +149,15 @@ if __name__ == "__main__":
         test_counter.append(examples_seen[0])
     print("Done!")
 
-    ## Plot training and testing error
-    # plt.figure(figsize=(8, 5))
-    # plt.plot(train_counter, train_losses, color='blue', label="Train loss")
-    # plt.scatter(test_counter, test_losses, color='red', zorder=5, label="Test loss")
-    # plt.xlabel("number of training examples seen")
-    # plt.ylabel("negative log likelihood loss")
-    # plt.legend()
-    # plt.savefig("training_test_error.png", dpi=150, bbox_inches='tight')
-    # plt.show()
+    # Plot training and testing error
+    plt.figure(figsize=(8, 5))
+    plt.plot(train_counter, train_losses, color='blue', label="Train loss")
+    plt.scatter(test_counter, test_losses, color='red', zorder=5, label="Test loss")
+    plt.xlabel("number of training examples seen")
+    plt.ylabel("negative log likelihood loss")
+    plt.legend()
+    plt.savefig("training_test_error.png", dpi=150, bbox_inches='tight')
+    plt.show()
 
     ##Task D - Save the Model
     torch.save(model.state_dict(), 'model_weights.pth')
