@@ -120,6 +120,7 @@ def run_video(model, size, source):
 
             break
 
+        # Saves a number.
         if key == ord('s'):
             numbers_saved.append(guess)
             print(f"{guess} saved\n")
