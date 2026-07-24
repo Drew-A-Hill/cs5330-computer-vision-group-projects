@@ -4,6 +4,7 @@ from model import NeuralNetwork
 from torch import nn
 import torchvision
 
+# Creates an instance of our NeuralNetwork class and loads it with the weights we saved previously
 model = NeuralNetwork() 
 model.load_state_dict(torch.load('model_weights.pth', weights_only=True))
 
@@ -75,6 +76,7 @@ greek_train_dataloader = torch.utils.data.DataLoader(
         shuffle = True 
 )
 
+# Training per epoch
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     training_loop(greek_train_dataloader, model, loss_fn, optimizer)
@@ -91,39 +93,40 @@ print(model)
 # plt.savefig("greek_training_error.png", dpi=150, bbox_inches='tight')
 # plt.show()
 
+# # Save the greek models weights to a file similar to the digit model weights
+# torch.save(model.state_dict(), 'greek_model_weights.pth')
 
-torch.save(model.state_dict(), 'greek_model_weights.pth')
+# ## Test on custom Greek letter images
+# labels_map = {0: "alpha", 1: "beta", 2: "gamma"}
+# test_transform = torchvision.transforms.Compose([
+#     torchvision.transforms.ToTensor(),
+#     GreekTransform(),
+#     torchvision.transforms.Normalize((0.1307,), (0.3081,))
+# ])
 
-## Test on custom Greek letter images
-labels_map = {0: "alpha", 1: "beta", 2: "gamma"}
-test_transform = torchvision.transforms.Compose([
-    torchvision.transforms.ToTensor(),
-    GreekTransform(),
-    torchvision.transforms.Normalize((0.1307,), (0.3081,))
-])
+# # Set the model to evaluation mode
+# model.eval()
+# from PIL import Image
+# test_images = [("alpha", "./greek_test/alpha.png"), ("beta", "./greek_test/beta.png"), ("gamma", "./greek_test/gamma.png")]
 
-model.eval()
-from PIL import Image
-test_images = [("alpha", "./greek_test/alpha.png"), ("beta", "./greek_test/beta.png"), ("gamma", "./greek_test/gamma.png")]
+# figure = plt.figure(figsize=(9, 3))
+# for i, (true_label, path) in enumerate(test_images):
+#     img = Image.open(path)
+#     img_tensor = test_transform(img).unsqueeze(0)
 
-figure = plt.figure(figsize=(9, 3))
-for i, (true_label, path) in enumerate(test_images):
-    img = Image.open(path)
-    img_tensor = test_transform(img).unsqueeze(0)
+#     with torch.no_grad():
+#         pred = model(img_tensor)
 
-    with torch.no_grad():
-        pred = model(img_tensor)
+#     pred_label = labels_map[pred.argmax().item()]
+#     values = [round(x, 2) for x in pred.data.tolist()[0]]
+#     print(f"True: {true_label}, Predicted: {pred_label}, Output: {values}")
 
-    pred_label = labels_map[pred.argmax().item()]
-    values = [round(x, 2) for x in pred.data.tolist()[0]]
-    print(f"True: {true_label}, Predicted: {pred_label}, Output: {values}")
+#     figure.add_subplot(1, 3, i + 1)
+#     plt.title(f"Pred: {pred_label}\nTrue: {true_label}")
+#     plt.xticks([])
+#     plt.yticks([])
+#     plt.imshow(img_tensor.squeeze(), cmap="gray")
 
-    figure.add_subplot(1, 3, i + 1)
-    plt.title(f"Pred: {pred_label}\nTrue: {true_label}")
-    plt.xticks([])
-    plt.yticks([])
-    plt.imshow(img_tensor.squeeze(), cmap="gray")
-
-plt.tight_layout()
-plt.savefig("greek_test_results.png", dpi=150, bbox_inches='tight')
-plt.show()
+# plt.tight_layout()
+# plt.savefig("greek_test_results.png", dpi=150, bbox_inches='tight')
+# plt.show()
