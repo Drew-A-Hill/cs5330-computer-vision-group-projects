@@ -1,3 +1,12 @@
+"""
+    Drew Hill & Abhiram Banda
+    CS5330 Pattern Recognition & Computer Vision
+
+    model.py
+
+    Defines the CNN architecture for MNIST digit recognition,
+    trains the model, and saves the weights to a file.
+"""
 import os
 import torch
 from torch import nn
@@ -42,6 +51,7 @@ train_dataloader = DataLoader(training_data, batch_size=64)
 test_dataloader = DataLoader(test_data, batch_size=64)
 
 class NeuralNetwork(nn.Module):
+    """CNN for MNIST digit classification with two conv layers, dropout, and two fully connected layers."""
     def __init__(self):
         super().__init__()
         self.conv1 = nn.Conv2d(1, 10, 5)
@@ -54,6 +64,7 @@ class NeuralNetwork(nn.Module):
 
 
     def forward(self, x):
+        """Passes input through conv->pool->relu layers, then fully connected layers with log_softmax output."""
         x = nn.functional.relu(self.pool1(self.conv1(x)))
         x = nn.functional.relu(self.pool2(self.drop1(self.conv2(x))))
         x = x.view(-1, 20 * 4 * 4)
@@ -78,6 +89,7 @@ if __name__ == "__main__":
 
 
     def training_loop(dataloader, model, loss_fn, optimizer):
+        """Runs one epoch of training: forward pass, loss computation, backpropagation, and weight updates."""
         size = len(dataloader.dataset)
         ## Set the model to training mode - important for batch normalization and dropout layers
         model.train()
@@ -100,8 +112,7 @@ if __name__ == "__main__":
                 print(f"loss: {loss.item():>7f}  [{current:>5d}/{size:>5d}]")
 
     def test_loop(dataloader, model, loss_fn):
-        # Set the model to evaluation mode - important for batch normalization and dropout layers
-        # Unnecessary in this situation but added for best practices
+        """Evaluates the model on a dataset, returning the average loss. Prints accuracy and loss."""
         model.eval()
         size = len(dataloader.dataset)
         num_batches = len(dataloader)

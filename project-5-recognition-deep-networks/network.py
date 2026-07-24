@@ -1,3 +1,12 @@
+"""
+    Drew Hill & Abhiram Banda
+    CS5330 Pattern Recognition & Computer Vision
+
+    network.py
+
+    Examines the trained CNN by visualizing the first layer's
+    10 conv filters in a grid.
+"""
 from model import NeuralNetwork
 import torch
 import matplotlib.pyplot as plt

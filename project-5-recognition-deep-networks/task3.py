@@ -1,3 +1,13 @@
+"""
+    Drew Hill & Abhiram Banda
+    CS5330 Pattern Recognition & Computer Vision
+
+    task3.py
+
+    Transfer learning: reuses the pretrained MNIST CNN to classify
+    Greek letters (alpha, beta, gamma) by freezing weights and
+    replacing the last layer.
+"""
 from matplotlib import pyplot as plt
 import torch
 from model import NeuralNetwork
@@ -27,6 +37,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 # greek data set transform
 class GreekTransform:
+    """Transforms Greek letter images to match MNIST format: grayscale, scaled, cropped to 28x28, and inverted."""
     def __init__(self):
         pass
 
@@ -41,6 +52,7 @@ train_counter = []
 examples_seen = [0]
 
 def training_loop(dataloader, model, loss_fn, optimizer):
+        """Runs one epoch of training on the Greek letter dataset, tracking losses for plotting."""
         size = len(dataloader.dataset)
         ## Set the model to training mode - important for batch normalization and dropout layers
         model.train()

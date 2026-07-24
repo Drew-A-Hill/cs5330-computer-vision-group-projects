@@ -1,3 +1,12 @@
+"""
+    Drew Hill & Abhiram Banda
+    CS5330 Pattern Recognition & Computer Vision
+
+    task2b.py
+
+    Applies the 10 learned conv1 filters to the first training image
+    using OpenCV's filter2D and plots the filtered results.
+"""
 import torch
 import cv2
 import matplotlib.pyplot as plt

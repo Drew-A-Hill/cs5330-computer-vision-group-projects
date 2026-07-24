@@ -1,3 +1,13 @@
+"""
+    Drew Hill & Abhiram Banda
+    CS5330 Pattern Recognition & Computer Vision
+
+    experiment.py
+
+    Evaluates the effect of changing conv filters, dropout rate,
+    and batch size on CNN performance using Fashion MNIST.
+    Uses a linear search strategy across 6 rounds.
+"""
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
@@ -25,6 +35,7 @@ test_data = datasets.FashionMNIST(
 
 ## Configurable CNN
 class ConfigurableCNN(nn.Module):
+    """CNN with configurable number of conv filters and dropout rate for experimentation."""
     def __init__(self, num_filters=10, dropout_rate=0.5):
         super().__init__()
         self.conv1 = nn.Conv2d(1, num_filters, 5)
@@ -37,6 +48,7 @@ class ConfigurableCNN(nn.Module):
         self.linear2 = nn.Linear(50, 10)
 
     def forward(self, x):
+        """Forward pass through the configurable CNN."""
         x = F.relu(self.pool1(self.conv1(x)))
         x = F.relu(self.pool2(self.drop1(self.conv2(x))))
         x = x.view(-1, self.num_filters * 2 * 4 * 4)
@@ -46,7 +58,7 @@ class ConfigurableCNN(nn.Module):
 
 
 def train_and_evaluate(num_filters, dropout_rate, batch_size, epochs=5):
-    """Train a model with given params and return test accuracy and training time."""
+    """Trains a CNN with the given hyperparameters and returns test accuracy, loss, and training time."""
     train_loader = DataLoader(training_data, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_data, batch_size=batch_size)
 

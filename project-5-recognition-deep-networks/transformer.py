@@ -1,3 +1,13 @@
+"""
+    Drew Hill & Abhiram Banda
+    CS5330 Pattern Recognition & Computer Vision
+
+    transformer.py
+
+    Re-implements the MNIST digit recognition network using a
+    Vision Transformer (ViT) architecture with patch embeddings
+    and self-attention layers.
+"""
 # Bruce A. Maxwell and Andy Zhao
 # Spring 2026
 # MNIST Transformer Class Template
@@ -370,8 +380,8 @@ train_counter = []
 
 
 def training_loop(dataloader, model, loss_fn, optimizer):
+    """Runs one epoch of training, moving data to GPU and tracking losses for plotting."""
     size = len(dataloader.dataset)
-    ## Set the model to training mode - important for batch normalization and dropout layers
     model.train()
     for batch, (X, y) in enumerate(dataloader):
         X, y = X.to(device), y.to(device)
@@ -393,8 +403,7 @@ def training_loop(dataloader, model, loss_fn, optimizer):
             print(f"loss: {loss.item():>7f}  [{current:>5d}/{size:>5d}]")
 
 def test_loop(dataloader, model, loss_fn):
-    # Set the model to evaluation mode - important for batch normalization and dropout layers
-    # Unnecessary in this situation but added for best practices
+    """Evaluates the model on a dataset using GPU, returning average loss. Prints accuracy and loss."""
     model.eval()
     size = len(dataloader.dataset)
     num_batches = len(dataloader)

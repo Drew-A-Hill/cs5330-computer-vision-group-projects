@@ -1,3 +1,12 @@
+"""
+    Drew Hill & Abhiram Banda
+    CS5330 Pattern Recognition & Computer Vision
+
+    load_model.py
+
+    Loads the trained CNN model and tests it on the first 10 examples
+    of the MNIST test set, printing predictions and plotting a 3x3 grid.
+"""
 from matplotlib import pyplot as plt
 import torch
 from model import NeuralNetwork, test_data

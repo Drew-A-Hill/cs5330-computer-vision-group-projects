@@ -1,3 +1,12 @@
+"""
+    Drew Hill & Abhiram Banda
+    CS5330 Pattern Recognition & Computer Vision
+
+    network_diagram.py
+
+    Generates a diagram of the CNN architecture showing all layers
+    and their output dimensions.
+"""
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
