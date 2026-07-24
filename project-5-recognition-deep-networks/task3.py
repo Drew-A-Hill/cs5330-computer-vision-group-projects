@@ -125,5 +125,5 @@ for i, (true_label, path) in enumerate(test_images):
     plt.imshow(img_tensor.squeeze(), cmap="gray")
 
 plt.tight_layout()
-plt.savefig("greek_test_results.png", dpi=150, bbox_inches='tight')
+plt.savefig("./results/greek_test_results.png", dpi=150, bbox_inches='tight')
 plt.show()

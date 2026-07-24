@@ -38,5 +38,5 @@ with torch.no_grad():
         plt.imshow(filtered_img, cmap="gray")
 
 plt.tight_layout()
-plt.savefig("filtered_images.png", dpi=150, bbox_inches='tight')
+plt.savefig("./results/filtered_images.png", dpi=150, bbox_inches='tight')
 plt.show()
