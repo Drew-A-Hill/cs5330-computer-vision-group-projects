@@ -37,3 +37,14 @@ class Tracker:
             return False
         (x_prev, _), (x_curr, _) = self.centroids[-2], self.centroids[-1]
         return (x_prev < line_x <= x_curr) or (x_prev > line_x >= x_curr)
+
+    def crossed_exit(self, left_x, right_x):
+        """
+        True if the track reaches the frame edge it is travelling toward.
+        """
+        d = self.direction()
+        if d == "left_to_right":
+            return self.crossed_line(right_x)
+        if d == "right_to_left":
+            return self.crossed_line(left_x)
+        return False
