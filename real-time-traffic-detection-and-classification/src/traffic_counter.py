@@ -8,9 +8,7 @@ filters out distant/stationary/wrong-direction objects, counts
 objects crossing a virtual line, and logs timestamped counts by class.
 
 Usage:
-    python traffic_counter.py --source http://<phone-ip>:8080/video
-    python traffic_counter.py --source 0                # webcam fallback for testing
-    python traffic_counter.py --source path/to/test.mp4 # recorded clip for testing
+    python traffic_counter.py --source <phone-ip> 
 """
 
 import argparse
@@ -22,6 +20,8 @@ from datetime import datetime
 import cv2
 from ultralytics import YOLO
 
+from tracker import Tracker
+
 # COCO class ids we care about (see model.names for the full list).
 # If you fine-tune a custom model with an added electric_scooter class,
 # add its id here and to CLASS_NAMES.
@@ -32,6 +32,7 @@ TARGET_CLASS_IDS = {
     3: "motorcycle", 
     5: "bus",
     7: "truck",
+    16: "dog",
 }
 
 CONF_THRESHOLD = 0.35
@@ -44,7 +45,9 @@ MIN_BOX_HEIGHT_PX = 40
 # Motion filter: minimum total centroid displacement (pixels) over the
 # trailing window below which a track is considered stationary (parked
 # car, reflection, etc.) and dropped.
-STATIONARY_WINDOW = 15          # frames of history to keep per track
+# frames of history to keep per track
+STATIONARY_WINDOW = 15         
+
 STATIONARY_DISPLACEMENT_PX = 12
 
 # Direction filter: only count tracks moving in this direction along the
@@ -59,71 +62,33 @@ COUNT_LINE_FRACTION = 0.5
 
 LOG_PATH = "traffic_log.csv"
 
-# ---------------------------------------------------------------------------
-
-
-class TrackState:
-    """
-    Per-track history used for the motion / direction / counting filters.
-    """
-
-    def __init__(self):
-        self.centroids = deque(maxlen=STATIONARY_WINDOW)
-        self.counted = False
-
-    def update(self, cx, cy):
-        self.centroids.append((cx, cy))
-
-    def displacement(self):
-        if len(self.centroids) < 2:
-            return 0.0
-        x0, y0 = self.centroids[0]
-        x1, y1 = self.centroids[-1]
-        return ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5
-
-    def direction(self):
-        if len(self.centroids) < 2:
-            return None
-        x0, _ = self.centroids[0]
-        x1, _ = self.centroids[-1]
-        return "left_to_right" if x1 > x0 else "right_to_left"
-
-    def crossed_line(self, line_x):
-        """
-        True if the track's centroid history straddles line_x this frame.
-        """
-        if len(self.centroids) < 2:
-            return False
-        (x_prev, _), (x_curr, _) = self.centroids[-2], self.centroids[-1]
-        return (x_prev < line_x <= x_curr) or (x_prev > line_x >= x_curr)
-
-
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--source", required=True,
-                         help="MJPEG stream URL, video file, or webcam index")
-    parser.add_argument("--model", default="yolov8n.pt",
-                         help="Path to YOLO weights (swap in a fine-tuned .pt if you train one)")
-    parser.add_argument("--display", action="store_true", default=True,
-                         help="Show live annotated window")
+    parser.add_argument("--source", required=True)
+    parser.add_argument("--street", required=True, help="Name of street")
+    parser.add_argument("--direction", required=True, help="Direction camera is facing, N, NE, NW, S, SE, SW ")
+    parser.add_argument("--cross", required=False, help="Name of cross street if any")
     args = parser.parse_args()
 
-    model = YOLO(args.model)
+    log_file_name = args.street
+    source = "http://" + args.source + ":8080/video"
+
+    log_file_path = args.street
+    if args.cross:
+        log_file_path += "_" + args.cross
+    log_file_path += "_" + args.direction + ".csv"
+
+    model = YOLO("yolov8n.pt")
 
     # Persistent state across frames.
-    tracks = defaultdict(TrackState)
+    tracks = defaultdict(Tracker)
     counts = defaultdict(int)
 
     # CSV log: one row per counted object.
-    log_file = open(LOG_PATH, "w", newline="")
+    log_file = open(log_file_path, "a", newline="")
     writer = csv.writer(log_file)
     writer.writerow(["timestamp", "track_id", "class"])
 
-    # ultralytics .track() handles reading the stream frame-by-frame when
-    # given a stream source, but for MJPEG http streams it's more reliable
-    # to pull frames yourself with cv2.VideoCapture and call .track() per
-    # frame with persist=True so IDs carry over.
-    source = int(args.source) if args.source.isdigit() else args.source
     cap = cv2.VideoCapture(source)
     if not cap.isOpened():
         raise RuntimeError(f"Could not open stream: {args.source}")
@@ -165,47 +130,51 @@ def main():
                 state = tracks[track_id]
                 state.update(cx, cy)
 
-                # --- stationary filter ---
+                # stationary filter 
                 if state.displacement() < STATIONARY_DISPLACEMENT_PX:
-                    color = (0, 0, 255)  # red = filtered out (stationary/too far)
+
+                    # Color is red if object is filtered out ie stationary or too far.
+                    color = (0, 0, 255)  
                     cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 1)
                     continue
 
-                # --- direction filter ---
+                # direction filter
                 if state.direction() != TARGET_DIRECTION:
-                    color = (0, 165, 255)  # orange = wrong direction
+                    color = (0, 165, 255)
                     cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 1)
                     continue
 
-                # --- counting line ---
+                # counting line
                 if not state.counted and state.crossed_line(line_x):
                     state.counted = True
                     counts[class_name] += 1
                     writer.writerow([datetime.now().isoformat(), track_id, class_name])
                     log_file.flush()
 
-                color = (0, 255, 0)  # green = valid, tracked, (maybe) counted
+                color = (0, 255, 0)  
                 cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
                 cv2.putText(frame, f"{class_name}", (int(x1), int(y1) - 6),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
 
-        # --- overlay: counting line + running totals ---
+        # overlay: counting line + running totals
         y_off = 20
         for cname, c in counts.items():
             cv2.putText(frame, f"{cname}: {c}", (10, y_off),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
             y_off += 22
 
-        if args.display:
-            cv2.imshow("Traffic Counter", frame)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
+        window_name = "Traffic: " + log_file_path.removesuffix(".csv")
+
+        cv2.imshow(window_name, frame)
+
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord("q"):
+            break
 
     cap.release()
     cv2.destroyAllWindows()
     log_file.close()
     print("Final counts:", dict(counts))
-
 
 if __name__ == "__main__":
     main()
