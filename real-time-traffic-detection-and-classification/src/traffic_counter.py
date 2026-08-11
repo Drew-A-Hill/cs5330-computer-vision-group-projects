@@ -185,11 +185,10 @@ def main():
 
                 color = (0, 255, 0)  # green = valid, tracked, (maybe) counted
                 cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
-                cv2.putText(frame, f"{class_name} #{track_id}", (int(x1), int(y1) - 6),
+                cv2.putText(frame, f"{class_name}", (int(x1), int(y1) - 6),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
 
         # --- overlay: counting line + running totals ---
-        cv2.line(frame, (line_x, 0), (line_x, frame.shape[0]), (255, 255, 0), 2)
         y_off = 20
         for cname, c in counts.items():
             cv2.putText(frame, f"{cname}: {c}", (10, y_off),
