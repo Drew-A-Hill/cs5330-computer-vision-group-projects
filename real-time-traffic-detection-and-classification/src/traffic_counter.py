@@ -1,6 +1,7 @@
 """
 Real-Time Street Traffic Detection and Classification
-CS5330 - Drew Hill & Abhiram Bandi
+CS5330 Pattern Recognition & Computer Vision
+Drew Hill & Abhiram Banda
 
 Pulls an MJPEG stream, runs YOLOv8 detection + ByteTrack tracking,
 filters out distant/stationary/wrong-direction objects, counts
@@ -21,18 +22,14 @@ from datetime import datetime
 import cv2
 from ultralytics import YOLO
 
-# ---------------------------------------------------------------------------
-# CONFIG - tune these for your camera placement / stream
-# ---------------------------------------------------------------------------
-
 # COCO class ids we care about (see model.names for the full list).
 # If you fine-tune a custom model with an added electric_scooter class,
 # add its id here and to CLASS_NAMES.
 TARGET_CLASS_IDS = {
-    0: "pedestrian",   # COCO 'person'
+    0: "pedestrian", 
     1: "bicycle",
     2: "car",
-    3: "motorcycle",   # electric scooters get bucketed here unless you fine-tune
+    3: "motorcycle", 
     5: "bus",
     7: "truck",
 }
@@ -66,7 +63,9 @@ LOG_PATH = "traffic_log.csv"
 
 
 class TrackState:
-    """Per-track history used for the motion / direction / counting filters."""
+    """
+    Per-track history used for the motion / direction / counting filters.
+    """
 
     def __init__(self):
         self.centroids = deque(maxlen=STATIONARY_WINDOW)
@@ -90,7 +89,9 @@ class TrackState:
         return "left_to_right" if x1 > x0 else "right_to_left"
 
     def crossed_line(self, line_x):
-        """True if the track's centroid history straddles line_x this frame."""
+        """
+        True if the track's centroid history straddles line_x this frame.
+        """
         if len(self.centroids) < 2:
             return False
         (x_prev, _), (x_curr, _) = self.centroids[-2], self.centroids[-1]
