@@ -6,14 +6,15 @@ Drew Hill & Abhiram Banda
 configs.py
 
 """
+WINDOW_RATIO = 0.95
+
 CLASS_IDS = {
     0: "pedestrian",
     1: "bicycle",
     2: "car",
-    3: "motorcycle", 
+    3: "motorcycle",
     5: "bus",
     7: "truck",
-    16: "dog",
 }
 
 # Minimum bbox height to be considered.
@@ -32,6 +33,28 @@ ATTRIBUTE_CLASSES = {"car", "motorcycle", "bus", "truck"}
 
 # Coarse YOLO classes refined into finer types by the ResNet classifier.
 REFINE_CLASSES = {"car", "truck", "bus", "motorcycle", "bicycle"}
+
+# ImageNet class index -> finer label used by the ResNet classifier.
+TARGET_BY_INDEX = {
+    407: "ambulance",
+    555: "fire truck",
+    569: "truck",
+    734: "police car",
+    656: "van",
+    675: "truck",
+    717: "pickup truck",
+    609: "suv",
+    436: "suv",
+    468: "car",
+    511: "car",
+    627: "car",
+    817: "car",
+    654: "bus",
+    779: "bus",
+    874: "bus",
+    864: "truck",
+    867: "truck",
+}
 
 # Overlap (of the smaller box) above which a pedestrian is treated as a rider.
 RIDER_OVERLAP = 0.4

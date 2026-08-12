@@ -6,35 +6,15 @@ Drew Hill & Abhiram Banda
 classifier.py
 
 """
+from datetime import datetime
+from pathlib import Path
+
+import cv2
 import numpy as np
 import torch
 from torchvision.models import resnet50, ResNet50_Weights
 
-
-TARGET_BY_INDEX = {
-    407: "ambulance",
-    555: "fire truck",
-    569: "garbage truck",
-    734: "police car",
-    656: "van",
-    675: "van",
-    717: "pickup truck",
-    665: "electric scooter",
-    670: "electric scooter",
-    609: "suv",
-    436: "suv",
-    757: "suv",
-    468: "car",
-    511: "car",
-    627: "car",
-    817: "car",
-    654: "bus",
-    779: "bus",
-    874: "bus",
-    864: "truck",
-    866: "truck",
-    867: "truck",
-}
+import configs
 
 
 def crop_object(frame, x1, y1, x2, y2, pad=0.10):
@@ -64,6 +44,8 @@ class Classifier:
         self.model = resnet50(weights=weights)
         self.model.eval()
         self.preprocess = weights.transforms()
+        self.categories = weights.meta["categories"]
+        self.unmatched_dir = Path(__file__).resolve().parents[1] / "unmatched"
 
     def predict(self, crop):
         """
@@ -79,6 +61,17 @@ class Classifier:
             probs = self.model(batch).softmax(1)[0]
         scores, indices = torch.topk(probs, self.top_k)
         for score, index in zip(scores.tolist(), indices.tolist()):
-            if index in TARGET_BY_INDEX and score >= self.conf:
-                return TARGET_BY_INDEX[index], float(score)
+            if index in configs.TARGET_BY_INDEX and score >= self.conf:
+                return configs.TARGET_BY_INDEX[index], float(score)
+        self._save_unmatched(crop, int(indices[0]), float(scores[0]))
         return None, 0.0
+
+    def _save_unmatched(self, crop, index, score):
+        """
+
+
+        """
+        self.unmatched_dir.mkdir(exist_ok=True)
+        name = self.categories[index].replace(" ", "_")
+        stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        cv2.imwrite(str(self.unmatched_dir / f"{name}_{score:.2f}_{stamp}.jpg"), crop)

@@ -14,9 +14,10 @@ Usage:
 """
 import argparse
 import time
+import tkinter
 from pathlib import Path
 import configs
-from collections import defaultdict
+from collections import defaultdict, deque
 import os
 
 from datetime import datetime
@@ -34,7 +35,7 @@ import overlay
 
 def main():
     """
-
+        
 
     """
     parser = argparse.ArgumentParser()
@@ -59,7 +60,7 @@ def main():
 
     file_name = args.street
     if args.cross:
-        file_name += "_" + args.cross
+        file_name += "&" + args.cross
 
     file_name += "_" + args.facing
 
@@ -73,6 +74,13 @@ def main():
     # Persistent state across frames.
     tracks = defaultdict(Tracker)
     counts = defaultdict(lambda: defaultdict(int))
+    detection_log = deque(maxlen=50)
+
+    # Start every class at 0 for both travel directions.
+    all_classes = sorted(set(configs.CLASS_IDS.values()) | set(configs.TARGET_BY_INDEX.values()))
+    for count_direction in configs.DIRECTIONS[args.facing]:
+        for count_class in all_classes:
+            counts[count_direction][count_class] += 0
 
     if is_network_source(source):
         cap = cv2.VideoCapture(source, cv2.CAP_FFMPEG)
@@ -93,16 +101,31 @@ def main():
     frame_idx = 0
     fails = 0
     got_frame = False
-    show_panel = True
-    show_line = False
+    show_totals = True
+    show_log = True
+    show_line = 0
     start = time.time()
 
-    location = f"{args.street}"
+    street_name, street_type = args.street.split("_")
+    
+    location = f"{street_name} {street_type}"
     if args.cross:
-        location += f" & {args.cross}"
+        cross_name, cross_type = args.cross.split("_")
+        location += f" & {cross_name} {cross_type}"
 
-    window_name = "Detecting Traffic: " + file_name
-    cv2.namedWindow(window_name, cv2.WINDOW_AUTOSIZE)
+    window_name = "Detecting Traffic: " + location
+
+    try:
+        _tk = tkinter.Tk()
+        screen_w, screen_h = _tk.winfo_screenwidth(), _tk.winfo_screenheight()
+        _tk.destroy()
+
+    except Exception:
+        screen_w, screen_h = 1920, 1080
+
+    target_w, target_h = int(screen_w * configs.WINDOW_RATIO), int(screen_h * configs.WINDOW_RATIO)
+
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 
     try:
         while True:
@@ -151,7 +174,7 @@ def main():
 
                 # stationary filter
                 if is_stationary(state):
-                    overlay.draw_filtered_box(frame, x1, y1, x2, y2)
+                    overlay.draw_filtered_box(frame, x1, y1, x2, y2, class_name, track_id)
                     continue
 
                 # direction filter
@@ -192,6 +215,9 @@ def main():
                     else:
                         color = "NA"
 
+                    entry_dir = traffic_dir_str if traffic_dir_str else "N/A"
+                    detection_log.append(f"{class_name} #{track_id} {color} {entry_dir}")
+
                     logger.write_row({
                         "timestamp": datetime.now().isoformat(),
                         "street": args.street,
@@ -203,17 +229,20 @@ def main():
 
                 overlay.draw_tracked_box(frame, x1, y1, x2, y2, class_name, track_id, traffic_dir_str)
 
-            if write:
-                overlay.draw_recording(frame)
-
-            # overlay running totals in a side panel
-            if show_panel:
-                display = overlay.draw_side_panel(frame, counts, elapsed_str, location)
-            else:
-                display = frame
-
-            if show_line:
+            if show_line == 1:
                 cv2.line(frame, (line_x, 0), (line_x, frame.shape[0]), (255, 0, 0), 2)
+
+            # scale the frame to the target size first, then draw the panel at that
+            # resolution so its text is rendered crisply instead of being upscaled
+            fh, fw = frame.shape[:2]
+            fit = min(target_w / fw, target_h / fh)
+            big = cv2.resize(frame, (int(fw * fit), int(fh * fit))) if fit != 1 else frame
+
+            if show_totals or show_log:
+                display = overlay.draw_side_panel(big, counts, log=detection_log,
+                                                  show_totals=show_totals, show_log=show_log, scale=fit)
+            else:
+                display = big
 
             if write and writer is None:
                 date_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -225,6 +254,12 @@ def main():
             if write and writer is not None:
                 writer.write(frame)
 
+            title = f"Detecting Traffic at {location} | {elapsed_str}"
+            if write:
+                title = "Recording | " + title
+            cv2.setWindowTitle(window_name, title)
+
+            cv2.resizeWindow(window_name, display.shape[1], display.shape[0])
             cv2.imshow(window_name, display)
 
             key = cv2.waitKey(1) & 0xFF
@@ -234,7 +269,9 @@ def main():
                 rotate = (rotate + 1) % 4
 
             if key == ord("d"):
-                show_panel = not show_panel
+                show_log = not show_log
+            if key == ord("t"):
+                show_totals = not show_totals
 
             if key == ord("s"):
                 if writer is None:
@@ -249,7 +286,11 @@ def main():
                     write = not write
 
             if key == ord("l"):
-                show_line = not show_line
+                if show_line == 0:
+                    show_line = 1
+                
+                else:
+                    show_line = 0
 
     finally:
         if writer is not None:
