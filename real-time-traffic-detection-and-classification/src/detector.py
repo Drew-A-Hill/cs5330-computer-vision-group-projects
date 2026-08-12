@@ -1,25 +1,34 @@
+"""
+Real-Time Street Traffic Detection and Classification
+CS5330 Pattern Recognition & Computer Vision
+Drew Hill & Abhiram Banda
+
+detector.py
+
+"""
 import configs
 
 from ultralytics import YOLO
 
-class Detection:
-    def __init__(self, track_id, cls_id, class_name, x1, y1, x2, y2, box_h, cx, cy):
-        self.track_id = track_id
-        self.cls_id = cls_id
-        self.class_name = class_name
-        self.x1 = x1
-        self.y1 = y1
-        self.x2 = x2
-        self.y2 = y2
-        self.box_h = box_h
-        self.cx = cx
-        self.cy = cy
+from detected_object import DetectedObject
 
 class Detector:
-    def __init__(self, weights="yolov8n.pt"):
+    """
+
+
+    """
+    def __init__(self, weights="weights/yolov8n.pt"):
+        """
+
+
+        """
         self.model = YOLO(weights)
 
     def track(self, frame):
+        """
+
+
+        """
         results = self.model.track(
             frame,
             persist=True,
@@ -42,7 +51,38 @@ class Detector:
                 cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
                 class_name = configs.CLASS_IDS.get(cls_id, "unknown")
                 detections.append(
-                    Detection(track_id, cls_id, class_name, x1, y1, x2, y2, box_h, cx, cy)
+                    DetectedObject(track_id, cls_id, class_name, x1, y1, x2, y2, box_h, cx, cy)
                 )
 
-        return detections
+        return self.drop_riders(detections)
+
+    def overlap_check(self, a, b):
+        """
+
+
+        """
+        left = max(a.x1, b.x1)
+        top = max(a.y1, b.y1)
+        right = min(a.x2, b.x2)
+        bottom = min(a.y2, b.y2)
+         
+        if right <= left or bottom <= top:
+            return 0.0
+
+        intersection = (right - left) * (bottom - top)
+        area_a = (a.x2 - a.x1) * (a.y2 - a.y1)
+        area_b = (b.x2 - b.x1) * (b.y2 - b.y1)
+        return intersection / min(area_a, area_b)
+
+    def drop_riders(self, detections):
+        """
+
+
+        """
+        vehicles = [d for d in detections if d.cls_id in (1, 3)]
+        kept = []
+        for d in detections:
+            if d.cls_id == 0 and any(self.overlap_check(d, v) >= configs.RIDER_OVERLAP for v in vehicles):
+                continue
+            kept.append(d)
+        return kept

@@ -1,7 +1,12 @@
 """
+Real-Time Street Traffic Detection and Classification
+CS5330 Pattern Recognition & Computer Vision
+Drew Hill & Abhiram Banda
+
+tracker.py
 
 """
-from collections import defaultdict, deque
+from collections import Counter, defaultdict, deque
 
 class Tracker:
     """
@@ -9,13 +14,51 @@ class Tracker:
     """
 
     def __init__(self):
+        """
+
+
+        """
         self.centroids = deque(maxlen=15)
         self.counted = False
+        self.color_counts = Counter()
+        self.best_h = 0
+
+    def add_color(self, label):
+        """
+
+
+        """
+        if label and label != "unknown":
+            self.color_counts[label] += 1
+
+    @staticmethod
+    def _winner(counts):
+        """
+
+
+        """
+        return counts.most_common(1)[0][0] if counts else "unknown"
+
+    @property
+    def color(self):
+        """
+
+
+        """
+        return self._winner(self.color_counts)
 
     def update(self, cx, cy):
+        """
+
+
+        """
         self.centroids.append((cx, cy))
 
     def displacement(self):
+        """
+
+
+        """
         if len(self.centroids) < 2:
             return 0.0
         x0, y0 = self.centroids[0]
@@ -23,6 +66,10 @@ class Tracker:
         return ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5
 
     def direction(self):
+        """
+
+
+        """
         if len(self.centroids) < 2:
             return None
         x0, _ = self.centroids[0]
