@@ -89,6 +89,7 @@ class Detector:
         intersection = (right - left) * (bottom - top)
         area_a = (a.x2 - a.x1) * (a.y2 - a.y1)
         area_b = (b.x2 - b.x1) * (b.y2 - b.y1)
+        
         return intersection / min(area_a, area_b)
 
     def drop_riders(self, detections):

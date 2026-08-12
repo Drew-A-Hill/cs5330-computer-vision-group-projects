@@ -1,9 +1,9 @@
 """
-Real-Time Street Traffic Detection and Classification
-CS5330 Pattern Recognition & Computer Vision
-Drew Hill & Abhiram Banda
+    Real-Time Street Traffic Detection and Classification
+    CS5330 Pattern Recognition & Computer Vision
+    Drew Hill & Abhiram Banda
 
-logger.py
+    logger.py
 
 """
 import csv

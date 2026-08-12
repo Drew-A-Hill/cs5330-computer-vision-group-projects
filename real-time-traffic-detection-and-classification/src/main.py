@@ -1,16 +1,13 @@
 """
-Real-Time Street Traffic Detection and Classification
-CS5330 Pattern Recognition & Computer Vision
-Drew Hill & Abhiram Banda
+    Real-Time Street Traffic Detection and Classification
+    CS5330 Pattern Recognition & Computer Vision
+    Drew Hill & Abhiram Banda
 
-main.py
+    main.py
 
-Pulls an MJPEG stream, runs YOLOv8 detection + ByteTrack tracking,
-filters out distant/stationary/wrong-direction objects, counts
-objects crossing a virtual line, and logs timestamped counts by class.
-
-Usage:
-    python main.py --source <phone-ip>
+    Pulls an MJPEG stream, runs YOLOv8 detection + ByteTrack tracking,
+    filters out distant/stationary/wrong-direction objects, counts
+    objects crossing a virtual line, and logs timestamped counts by class.
 """
 import argparse
 import time
@@ -35,10 +32,6 @@ from video_source import get_source, is_network_source, is_file_source, check_co
 import overlay
 
 def main():
-    """
-        
-
-    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", required=True)
     parser.add_argument("--street", required=True, help="Name of street")

@@ -1,9 +1,9 @@
 """
-Real-Time Street Traffic Detection and Classification
-CS5330 Pattern Recognition & Computer Vision
-Drew Hill & Abhiram Banda
+    Real-Time Street Traffic Detection and Classification
+    CS5330 Pattern Recognition & Computer Vision
+    Drew Hill & Abhiram Banda
 
-tracker.py
+    tracker.py
 
 """
 from collections import Counter, defaultdict, deque
