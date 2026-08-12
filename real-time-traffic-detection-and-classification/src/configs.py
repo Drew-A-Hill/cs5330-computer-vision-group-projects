@@ -1,13 +1,16 @@
 """
-Real-Time Street Traffic Detection and Classification
-CS5330 Pattern Recognition & Computer Vision
-Drew Hill & Abhiram Banda
+    Real-Time Street Traffic Detection and Classification
+    CS5330 Pattern Recognition & Computer Vision
+    Drew Hill & Abhiram Banda
 
-configs.py
+    configs.py
 
+    Holds all of the tunable settings and shared constants.
 """
+# Fraction of the screen size to display the window in.
 WINDOW_RATIO = 0.95
 
+# YOLO class ids we detect and their names.
 CLASS_IDS = {
     0: "pedestrian",
     1: "bicycle",
@@ -17,24 +20,27 @@ CLASS_IDS = {
     7: "truck",
 }
 
-# Minimum bbox height to be considered.
+# Minimum box height considered. Too smaller is far and too large is too close.
 MIN_BOX_HEIGHT_PX = 20
 MAX_BOX_HEIGHT_PX = 200
 
-# Minimum total centroid displacement. Used to identify stationary objects
+# Used to identify stationary objects
 STATIONARY_WINDOW = 15
 STATIONARY_DISPLACEMENT_PX = 12
 
 # Distance from the frame edge at which a crossing object is counted.
 EDGE_MARGIN_PX = 40
 
+# Only samples an objects color every nth frame.
 SAMPLE_EVERY = 5
+
+# Classes we detect color for.
 ATTRIBUTE_CLASSES = {"car", "motorcycle", "bus", "truck"}
 
-# Coarse YOLO classes refined into finer types by the ResNet classifier.
+# YOLO classes refined into labels by the ResNet classifier.
 REFINE_CLASSES = {"car", "truck", "bus", "motorcycle", "bicycle"}
 
-# ImageNet class index -> finer label used by the ResNet classifier.
+# ImageNet class index with finer label used by the ResNet classifier.
 TARGET_BY_INDEX = {
     407: "ambulance",
     555: "fire truck",
@@ -56,14 +62,15 @@ TARGET_BY_INDEX = {
     867: "truck",
 }
 
-# Overlap (of the smaller box) above which a pedestrian is treated as a rider.
+# Overlap above which a pedestrian is treated as a rider of bike or motorcycle.
 RIDER_OVERLAP = 0.4
 
-# Capture retry and connection check.
+# Setting for handling the video stream.
 MAX_CONSECUTIVE_FAILS = 20
 RETRY_SLEEP_S = 0.2
 CONNECTION_TIMEOUT_S = 10.0
 
+# Maps the direction object is heading relative to the direction the camera is facing.
 DIRECTIONS = {
         "N": ["W", "E"], 
         "NE": ["NW", "SE"], 
@@ -74,7 +81,7 @@ DIRECTIONS = {
         "W": ["S", "N"], 
         "NW": ["SW", "NE"]
         }
-
+# The columns written to the csv.
 FIELDS = [
     "timestamp",
     "street",

@@ -29,7 +29,8 @@ from detector import Detector
 from filters import is_too_far, is_stationary, direction_label, matches_direction
 from logger import Logger
 from color import detect_color
-from classifier import Classifier, crop_object
+from classifier import Classifier
+from helper import crop_object
 from video_source import get_source, is_network_source, is_file_source, check_connection
 import overlay
 
@@ -189,8 +190,9 @@ def main():
                 if not state.counted and matches_direction(state, args.direction) and state.crossed_line(line_x):
                     state.counted = True
                     is_vehicle = class_name in configs.ATTRIBUTE_CLASSES
+                    
                     if class_name in configs.REFINE_CLASSES:
-                        label, conf = classifier.predict(crop_object(frame, x1, y1, x2, y2))
+                        label, conf = classifier.classify(crop_object(frame, x1, y1, x2, y2))
                         if label:
                             class_name = label
                     direction_key = traffic_dir_str if traffic_dir_str else "Unknown"
