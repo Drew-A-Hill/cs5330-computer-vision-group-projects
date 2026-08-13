@@ -25,11 +25,7 @@ MIN_BOX_HEIGHT_PX = 20
 MAX_BOX_HEIGHT_PX = 200
 
 # Used to identify stationary objects
-STATIONARY_WINDOW = 15
 STATIONARY_DISPLACEMENT_PX = 12
-
-# Distance from the frame edge at which a crossing object is counted.
-EDGE_MARGIN_PX = 40
 
 # Only samples an objects color every nth frame.
 SAMPLE_EVERY = 5

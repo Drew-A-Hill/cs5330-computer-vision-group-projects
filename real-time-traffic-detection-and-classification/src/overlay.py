@@ -5,17 +5,27 @@
 
     overlay.py
 
+    This file is uesd for all of the window overlays.
 """
 import cv2
 import numpy as np
 
 def draw_filtered_box(frame, x1, y1, x2, y2, class_name, object_id):
     """
+        Draws a red box for an object that was filtered out with its id and 
+        class and a direction of N/A.
 
-
+        frame: cv2.Mat - This is the frame captured.
+        x1: int - Left edge of the box.
+        y1: int - Top edge of the box.
+        x2: int - Right edge of the box.
+        y2: int - Bottom edge of the box.
+        class_name: str - The objects class name.
+        object_id: int - The tracker id of the object.
     """
     box_color = (0, 0, 255)
     text_color = (0, 255, 255)
+
     cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), box_color, 2)
     cv2.putText(frame, f"ID: {object_id}\n Class: {class_name}\n Direction: N/A", (int(x1), int(y1) - 35),
                 cv2.FONT_HERSHEY_SIMPLEX, .45, text_color, 1)
@@ -23,10 +33,19 @@ def draw_filtered_box(frame, x1, y1, x2, y2, class_name, object_id):
 
 def draw_tracked_box(frame, x1, y1, x2, y2, class_name, object_id, direction):
     """
+        Draws a green box for a tracked object with its id, class, and direction.
 
-
+        frame: cv2.Mat - This is the frame captured.
+        x1: int - Left edge of the box.
+        y1: int - Top edge of the box.
+        x2: int - Right edge of the box.
+        y2: int - Bottom edge of the box.
+        class_name: str - The objects class name.
+        object_id: int - The tracker id of the object.
+        direction: str - The direction the object is travelling.
     """
     color = (0, 255, 0)
+    
     cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
     cv2.putText(frame, f"ID: {object_id}\n Class: {class_name}\n Direction: {direction}", (int(x1), int(y1) - 35),
                 cv2.FONT_HERSHEY_SIMPLEX, .45, color, 1)
@@ -34,8 +53,6 @@ def draw_tracked_box(frame, x1, y1, x2, y2, class_name, object_id, direction):
 
 def draw_side_panel(frame, counts, log=None, show_totals=True, show_log=True, scale=1.0):
     """
-
-
     """
     font = cv2.FONT_HERSHEY_SIMPLEX
     red = (0, 0, 255)

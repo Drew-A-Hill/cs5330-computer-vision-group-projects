@@ -21,13 +21,13 @@ def is_too_far(box_height):
     """
     return box_height < configs.MIN_BOX_HEIGHT_PX
 
-def is_too_far(box_height):
+def is_too_close(box_height):
     """
         Checks if an object is too close.
 
         box_height: int - Height of the box in pixels.
         
-        returns True if the box is larger than the minimum.
+        returns True if the box is larger than the maximum.
     """
     return box_height > configs.MAX_BOX_HEIGHT_PX
 
@@ -39,7 +39,7 @@ def is_stationary(state):
 
         returns True if it moves less then the designated minimum.
     """
-    return state.displacement() < configs.STATIONARY_DISPLACEMENT_PX
+    return state.distance_moved() < configs.STATIONARY_DISPLACEMENT_PX
 
 def direction_label(state, camera_direction):
     """

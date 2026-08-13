@@ -23,7 +23,7 @@ import cv2
 
 from tracker import Tracker
 from detector import Detector
-from filters import is_too_far, is_stationary, direction_label, matches_direction
+from filters import is_too_far, is_too_close, is_stationary, direction_label, matches_direction
 from logger import Logger
 from color import detect_color
 from classifier import Classifier
@@ -160,7 +160,7 @@ def main():
                 track_id = det.track_id
 
                 # distance filter
-                if is_too_far(box_h):
+                if is_too_far(box_h) or is_too_close(box_h):
                     continue
 
                 state = tracks[track_id]
@@ -206,7 +206,7 @@ def main():
 
 
                     if is_vehicle:
-                        color = state.color
+                        color = state.get_tracked_color()
                     else:
                         color = "NA"
 

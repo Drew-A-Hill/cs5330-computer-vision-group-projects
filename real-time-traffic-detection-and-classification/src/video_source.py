@@ -5,6 +5,7 @@
 
     video_source.py
 
+    Figures out what video source to open from the --source argument.
 """
 import socket
 import subprocess
@@ -17,8 +18,6 @@ import configs
 
 def get_source(raw):
     """
-
-
     """
     if raw == "relay":
         address = find_phone_address()
@@ -32,8 +31,6 @@ def get_source(raw):
 
 def resolve_source(raw):
     """
-
-
     """
     if "://" in raw:
         return raw
@@ -46,24 +43,18 @@ def resolve_source(raw):
 
 def is_network_source(source):
     """
-
-
     """
     return isinstance(source, str) and "://" in source
 
 
 def is_file_source(source):
     """
-
-
     """
     return isinstance(source, str) and "://" not in source
 
 
 def _host_port(source):
     """
-
-
     """
     parts = urlsplit(source)
     host = parts.hostname
@@ -78,21 +69,22 @@ def _host_port(source):
 
 def check_connection(source, timeout=configs.CONNECTION_TIMEOUT_S):
     """
-
-
     """
     host, port = _host_port(source)
     if host is None or port is None or "%" in host:
         return True, ""
+
     try:
         with socket.create_connection((host, port), timeout=timeout):
             return True, ""
+
     except ConnectionRefusedError:
         return False, (
             f"Could not connect to {source}\n"
             f"Connection refused at {host}:{port} - the host is reachable but nothing is "
             f"listening. Check that the camera app's server is started and that --port matches."
         )
+
     except (socket.timeout, OSError):
         return False, (
             f"Could not reach {source}\n"
@@ -101,11 +93,8 @@ def check_connection(source, timeout=configs.CONNECTION_TIMEOUT_S):
             f"Verify with: ping {host}"
         )
 
-
 def find_phone_address():
     """
-
-
     """
     output = subprocess.run(["netstat", "-rn"], capture_output=True, text=True).stdout
     for line in output.splitlines():
@@ -116,11 +105,8 @@ def find_phone_address():
                 return cols[1]
     return None
 
-
 def start_relay(address, phone_port=8080, local_port=8080):
     """
-
-
     """
     host, _, iface = address.partition("%")
     scope = socket.if_nametoindex(iface)
@@ -139,8 +125,6 @@ def start_relay(address, phone_port=8080, local_port=8080):
 
 def pump(src, dst):
     """
-
-
     """
     try:
         while True:
@@ -148,8 +132,10 @@ def pump(src, dst):
             if not data:
                 break
             dst.sendall(data)
+
     except OSError:
         pass
+
     finally:
         for s in (src, dst):
             try:
@@ -160,15 +146,15 @@ def pump(src, dst):
 
 def handle(client, host, port, scope):
     """
-
-
     """
     up = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
     try:
         up.connect((host, port, 0, scope))
+
     except OSError as e:
         print(f"upstream connect failed: {e}")
         client.close()
         return
+
     threading.Thread(target=pump, args=(client, up), daemon=True).start()
     pump(up, client)
