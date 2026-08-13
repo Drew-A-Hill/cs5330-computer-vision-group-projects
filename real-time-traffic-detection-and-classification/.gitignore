@@ -1,0 +1,11 @@
+
+*
+!*/
+!.gitignore
+
+!*.py
+!*.pt
+!*.md
+
+# Ignore the whole gui folder.
+gui/
